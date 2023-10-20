@@ -3,6 +3,13 @@ lib/
 .vscode/
 
 venv/
+# Python related files
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+dist/
+build/
 
 test/config.json
 
