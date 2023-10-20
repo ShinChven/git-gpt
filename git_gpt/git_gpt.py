@@ -77,6 +77,9 @@ def commit(max_tokens, lang):
     if 'base' in config:
         openai.api_base = f"{config['base']}/v1"
 
+    # print loading animation
+    click.echo("Generating commit message...")
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
