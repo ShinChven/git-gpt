@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='git-gpt',
+    name='gitgpt',
     version='0.1.0',
     author='ShinChven',
     author_email='shinchven@gmail.com',
