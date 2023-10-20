@@ -13,10 +13,10 @@ def cli():
 
 @cli.command(help=f"Configure the CLI. Configuration will be saved to {os.path.expanduser('~/.config/git-gpt/config.json')}")
 @click.option('--api-key', help='The API key to use with OpenAI.')
-@click.option('--host', help='The alternative OpenAI host.')
+@click.option('--base', help='The alternative OpenAI host.')
 @click.option('--max-tokens', type=int, help='Maximum number of tokens for the generated message.')
 @click.option('--lang', help='Target language for the generated message.')
-def config(api_key, host, max_tokens, lang):
+def config(api_key, base, max_tokens, lang):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     
     # Load existing configuration if it exists
@@ -29,8 +29,8 @@ def config(api_key, host, max_tokens, lang):
     # Update configuration with provided arguments
     if api_key:
         config_data['api_key'] = api_key
-    if host:
-        config_data['openai_host'] = host
+    if base:
+        config_data['base'] = base
     if max_tokens:
         config_data['max_tokens'] = max_tokens
     if lang:
@@ -59,6 +59,11 @@ def commit(max_tokens, lang):
     with open(config_path, 'r') as config_file:
         config = json.load(config_file)
 
+    if 'api_key' not in config:
+        print("API key not set. Please set the API key in the config file at ~/.config/git-gpt/config.json")
+        print('You can config the API key by running `git-gpt config --api-key <API_KEY>`')
+        return
+
     # If arguments are not provided via command line, try to get them from the config file
     max_tokens = max_tokens or config.get('max_tokens', 100)
     lang = lang or config.get('lang', 'en')
@@ -69,7 +74,8 @@ def commit(max_tokens, lang):
     diffs = repo.git.diff('--staged')  # Get textual representation of staged diffs
 
     openai.api_key = config['api_key']
-    openai.api_base = f"{config['openai_host']}/v1"
+    if 'base' in config:
+        openai.api_base = f"{config['base']}/v1"
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
