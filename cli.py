@@ -1,9 +1,10 @@
+import subprocess
+import tempfile
+import click
+import openai
+import git
 import json
 import os
-
-import click
-import git
-import openai
 
 
 @click.group()
@@ -74,7 +75,20 @@ def commit(max_tokens, lang):
     )
 
     commit_message = response['choices'][0]['message']['content'].strip()
-    print(commit_message)
+    
+    # Create a temporary file to hold the commit message
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+        temp_file.write(commit_message)
+        temp_file_name = temp_file.name
+
+    # Use git to open the commit message editing dialog
+    try:
+        subprocess.run(['git', 'commit', '-e', '-F', temp_file_name], check=True)
+    except subprocess.CalledProcessError:
+        click.echo("Failed to create commit. Aborting.")
+    finally:
+        # Clean up the temporary file
+        os.remove(temp_file_name)
 
 
 if __name__ == '__main__':
