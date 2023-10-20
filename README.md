@@ -1,54 +1,56 @@
-# git-gpt
+# Git-GPT
 
-A CLI tool to generate commit messages and issues based on staged Git diffs using OpenAI GPT-3.5-turbo.
+A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT-3.5 model.
 
 ## Installation
 
-To install `git-gpt`, you can use pip:
+Install `git-gpt` via pip:
 
 ```bash
-pip install git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
+pip install --upgrade git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
 ```
 
 ## Configuration
 
-Before you can start using `git-gpt`, you'll need to configure it with your OpenAI API credentials and other optional settings:
+Before using `git-gpt`, you'll need to configure it with your OpenAI API key and other optional settings. Run the following command and follow the prompts:
 
 ```bash
-git-gpt config --api-key <your-api-key> --host <alternative-openai-host> --max-tokens <max-tokens> --lang <language>
+git-gpt config --api-key <API_KEY>
 ```
 
-- `--api-key`: Your OpenAI API key.
-- `--host`: An alternative OpenAI host (optional).
-- `--max-tokens`: Maximum number of tokens for the generated message (optional, default is 100).
-- `--lang`: Target language for the generated message (optional, default is 'en').
-
-Configuration will be saved to `~/.config/git-gpt/config.json`.
+### Options:
+- `--api-key`: The API key to use with OpenAI.
+- `--base`: The alternative OpenAI host.
+- `--lang`: Target language for the generated message (default is 'en').
+- `--issue-max-tokens`: The maximum number of tokens to use for the issue prompt.
 
 ## Usage
 
-### Commit
+### Generating Commit Messages
 
-To generate a commit message for staged Git diffs:
-
-```bash
-git-gpt commit --max-tokens <max-tokens> --lang <language>
-```
-
-- `--max-tokens`: Maximum number of tokens for the generated message (optional).
-- `--lang`: Target language for the generated message (optional).
-
-### Recommit
-
-To reset the latest commit, stage all changes, and generate a new commit message:
+To generate a commit message based on your staged changes, run:
 
 ```bash
-git-gpt recommit --max-tokens <max-tokens> --lang <language>
+git-gpt commit [--lang <LANGUAGE>]
 ```
 
-- `--max-tokens`: Maximum number of tokens for the generated message (optional).
-- `--lang`: Target language for the generated message (optional).
+### Creating Issues
+
+To create an issue based on the diffs of the latest commit(s), run:
+
+```bash
+git-gpt issue [--lang <LANGUAGE>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+```
+
+### Options:
+- `--lang`: Target language for the generated message (default is 'en').
+- `--max-tokens`: The maximum number of tokens to use for the issue prompt.
+- `--commit-range`: The range of commits to consider for generating the issue.
+
+## Contributing
+
+Feel free to fork the repository, create a feature branch, and open a Pull Request.
 
 ## License
 
-LICENSE: [MIT](/LICENSE)
+[MIT License](LICENSE)
