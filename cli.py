@@ -78,19 +78,14 @@ def commit(max_tokens, lang):
     # Get the current commit hash
     current_commit_hash = repo.head.commit.hexsha
     
-    # Create a temporary file to hold the commit message
+  # Create a temporary file to hold the commit message
     with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
         temp_file.write(commit_message)
         temp_file_name = temp_file.name
 
     # Use git to open the commit message editing dialog
     try:
-        subprocess.run(['git', 'commit', '-e', '-F', temp_file_name], check=True)
-
-        # Check if a new commit was created
-        new_commit_hash = repo.head.commit.hexsha
-        if current_commit_hash == new_commit_hash:
-            click.echo("No new commit created. It seems like the editor was exited without saving.")
+        subprocess.run(['git', 'commit', '--allow-empty-message', '--cleanup=whitespace', '-e', '-F', temp_file_name], check=True)
     except subprocess.CalledProcessError:
         click.echo("Failed to create commit. Aborting.")
     finally:
