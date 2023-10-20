@@ -7,7 +7,7 @@ A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT-3.
 Install `git-gpt` via pip:
 
 ```bash
-pip install --upgrade git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
+pip install git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
 ```
 
 ## Configuration
