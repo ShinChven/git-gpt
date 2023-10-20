@@ -110,7 +110,8 @@ def commit(lang):
 @cli.command()
 @click.option('--lang', default=None, help='Target language for the generated message.')
 @click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the issue prompt.')
-def issue(lang, max_tokens):
+@click.option('--commit-range', type=int, help='The maximum number of tokens to use for the issue prompt.')
+def issue(lang, max_tokens, commit_range):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
         # Create the parent directory if it does not exist
@@ -132,7 +133,7 @@ def issue(lang, max_tokens):
 
     repo = git.Repo(os.getcwd())
     # read the diffs of the latest commit
-    diffs = repo.git.diff('HEAD~1..HEAD')  # Get textual representation of staged diffs
+    diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')  # Get textual representation of staged diffs
 
     # if max tokens is not provided, use the default value
     max_tokens = max_tokens or config.get('issue_max_tokens', 1000)
@@ -148,7 +149,7 @@ def issue(lang, max_tokens):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": f"You are a senior programmer."},
-            {"role": "user", "content": f"Please write a development issue to introduce target and tasks according to the following diffs in {lang}:\n{diffs}"}
+            {"role": "user", "content": f"Please answer me in {lang}.\nPlease write a development issue to introduce target and features according to the following diffs:\n{diffs}. You should give a title."}
         ],
         max_tokens=max_tokens,
         stop=None
