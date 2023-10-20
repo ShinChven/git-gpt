@@ -49,6 +49,13 @@ def config(api_key, host, max_tokens, lang):
 @click.option('--lang', default=None, help='Target language for the generated message.')
 def commit(max_tokens, lang):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
+    if not os.path.exists(config_path):
+        # Create the parent directory if it does not exist
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        # Create the config file with an empty dictionary
+        with open(config_path, 'w') as config_file:
+            json.dump({}, config_file)
+
     with open(config_path, 'r') as config_file:
         config = json.load(config_file)
 
