@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='git-gpt',
+    name='git_gpt',
     version='0.1.0',
     author='ShinChven',
     author_email='shinchven@gmail.com',
@@ -15,7 +15,7 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        git-gpt=git_gpt.cli:cli
+        git-gpt=git_gpt.git_gpt:cli
     ''',
     description='A CLI tool to generate commit messages and issues based on staged Git diffs using OpenAI GPT-3.5-turbo',
     long_description=open('README.md').read(),
