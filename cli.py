@@ -95,6 +95,7 @@ def commit(max_tokens, lang):
 
     if current_head_hash == new_head_hash:
         click.echo("Commit aborted as the message was not modified.")
+        subprocess.run(['git', 'rev-parse', 'HEAD~'], stdout=subprocess.PIPE, text=True).stdout.strip()
 
     # Clean up the temporary file
     os.remove(temp_file_name)
