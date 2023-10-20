@@ -44,7 +44,6 @@ def config(api_key, host, max_tokens, lang):
     click.echo(f'Configuration saved to: {config_path}')
 
 
-
 @cli.command()
 @click.option('--max-tokens', default=None, help='Maximum number of tokens for the generated message.')
 @click.option('--lang', default=None, help='Target language for the generated message.')
@@ -67,7 +66,7 @@ def commit(max_tokens, lang):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": f"You are a senior programmer."},
-            {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and Description under 72 characters, written in {lang}.\nThe message should start with `feat:` or `fix`. Please summarize the Description in a list.\n\ndiffs:\n{diffs}"}
+            {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and Description under 72 characters, written in {lang}.The message should start with `feat:` or `fix`. Please summarize the Description in a list.\ndiffs:\n{diffs}"}
         ],
         max_tokens=max_tokens,  # Using the max_tokens argument here
         stop=None
@@ -75,22 +74,30 @@ def commit(max_tokens, lang):
 
     commit_message = response['choices'][0]['message']['content'].strip()
 
-    # Get the current commit hash
-    current_commit_hash = repo.head.commit.hexsha
-    
-  # Create a temporary file to hold the commit message
+    # Get the current HEAD commit hash
+    current_head_hash = subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE, text=True).stdout.strip()
+
+    # Create a temporary file to hold the commit message
     with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
         temp_file.write(commit_message)
         temp_file_name = temp_file.name
 
     # Use git to open the commit message editing dialog
     try:
-        subprocess.run(['git', 'commit', '--allow-empty-message', '--cleanup=whitespace', '-e', '-F', temp_file_name], check=True)
+        subprocess.run(['git', 'commit', '-e', '-F', temp_file_name], check=True)
     except subprocess.CalledProcessError:
         click.echo("Failed to create commit. Aborting.")
-    finally:
-        # Clean up the temporary file
-        os.remove(temp_file_name)
+        os.remove(temp_file_name)  # Clean up the temporary file
+        return
+
+    # Get the new HEAD commit hash
+    new_head_hash = subprocess.run(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE, text=True).stdout.strip()
+
+    if current_head_hash == new_head_hash:
+        click.echo("Commit aborted as the message was not modified.")
+
+    # Clean up the temporary file
+    os.remove(temp_file_name)
 
 if __name__ == '__main__':
     cli()
