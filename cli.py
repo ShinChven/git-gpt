@@ -45,7 +45,6 @@ def config(api_key, host, max_tokens, lang):
 
 
 
-
 @cli.command()
 @click.option('--max-tokens', default=None, help='Maximum number of tokens for the generated message.')
 @click.option('--lang', default=None, help='Target language for the generated message.')
@@ -75,6 +74,9 @@ def commit(max_tokens, lang):
     )
 
     commit_message = response['choices'][0]['message']['content'].strip()
+
+    # Get the current commit hash
+    current_commit_hash = repo.head.commit.hexsha
     
     # Create a temporary file to hold the commit message
     with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
@@ -84,12 +86,16 @@ def commit(max_tokens, lang):
     # Use git to open the commit message editing dialog
     try:
         subprocess.run(['git', 'commit', '-e', '-F', temp_file_name], check=True)
+
+        # Check if a new commit was created
+        new_commit_hash = repo.head.commit.hexsha
+        if current_commit_hash == new_commit_hash:
+            click.echo("No new commit created. It seems like the editor was exited without saving.")
     except subprocess.CalledProcessError:
         click.echo("Failed to create commit. Aborting.")
     finally:
         # Clean up the temporary file
         os.remove(temp_file_name)
-
 
 if __name__ == '__main__':
     cli()
