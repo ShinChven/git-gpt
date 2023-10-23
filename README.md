@@ -10,6 +10,12 @@ Install `git-gpt` via pip:
 pip install git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
 ```
 
+Upgrade:
+  
+```bash
+pip install --upgrade git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
+```
+
 ## Configuration
 
 Before using `git-gpt`, you'll need to configure it with your OpenAI API key and other optional settings. Run the following command and follow the prompts:
