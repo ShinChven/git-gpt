@@ -117,9 +117,10 @@ def commit(lang, model):
 
 @cli.command()
 @click.option('--lang', default=None, help='Target language for the generated message.')
+@click.option('--model', default=None, help='The model to use for generating the commit message.')
 @click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the issue prompt.')
 @click.option('--commit-range', type=int, help='The maximum number of tokens to use for the issue prompt.')
-def issue(lang, max_tokens, commit_range):
+def issue(lang, model, max_tokens, commit_range):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
         # Create the parent directory if it does not exist
@@ -138,6 +139,7 @@ def issue(lang, max_tokens, commit_range):
 
     # If arguments are not provided via command line, try to get them from the config file
     lang = lang or config.get('lang', 'en')
+    model = model or config.get('model', 'gpt-3.5-turbo')
 
     repo = git.Repo(os.getcwd())
     # read the diffs of the latest commit
@@ -151,10 +153,10 @@ def issue(lang, max_tokens, commit_range):
         openai.api_base = f"{config['base']}/v1"
 
     # print loading animation
-    click.echo("Generating issue...")
+    click.echo(f"Generating issue using {model}...")
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model=model,
         messages=[
             {"role": "system", "content": f"You are a senior programmer."},
             {"role": "user", "content": f"Please answer me in {lang}.\nPlease write a development issue to introduce target and features according to the following diffs:\n{diffs}. You should give a title."}

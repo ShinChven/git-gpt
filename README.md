@@ -1,6 +1,6 @@
 # Git-GPT
 
-A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT-3.5 model.
+A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT model.
 
 ## Installation
 
@@ -27,6 +27,7 @@ git-gpt config --api-key <API_KEY>
 ### Options:
 - `--api-key`: The API key to use with OpenAI.
 - `--base`: The alternative OpenAI host.
+- `--model`: The model to use for generating messages.
 - `--lang`: Target language for the generated message (default is 'en').
 - `--issue-max-tokens`: The maximum number of tokens to use for the issue prompt.
 
@@ -34,22 +35,29 @@ git-gpt config --api-key <API_KEY>
 
 ### Generating Commit Messages
 
-To generate a commit message based on your staged changes, run:
+Stage all changes and generate a commit message using GPT model:
 
 ```bash
-git-gpt commit [--lang <LANGUAGE>]
+git-gpt commit [--lang <LANGUAGE>] [--model <GPT-MODEL>]
 ```
+
+Options:
+
+- `--lang`: Target language for the generated message (default is 'en').
+- `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
 
 ### Creating Issues
 
 To create an issue based on the diffs of the latest commit(s), run:
 
 ```bash
-git-gpt issue [--lang <LANGUAGE>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+git-gpt issue [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
 ```
 
-### Options:
+Options:
+
 - `--lang`: Target language for the generated message (default is 'en').
+- `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
 - `--max-tokens`: The maximum number of tokens to use for the issue prompt.
 - `--commit-range`: The range of commits to consider for generating the issue.
 
