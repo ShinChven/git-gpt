@@ -85,7 +85,7 @@ def commit(lang, model):
         openai.api_base = f"{config['base']}/v1"
 
     # print loading animation
-    click.echo("Generating commit message...")
+    click.echo(f"Generating commit message with {model}...")
 
     response = openai.ChatCompletion.create(
         model=model,
