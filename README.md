@@ -40,13 +40,14 @@ git-gpt config --api-key <API_KEY>
 Stage all changes and generate a commit message using GPT model:
 
 ```bash
-git-gpt commit [--lang <LANGUAGE>] [--model <GPT-MODEL>]
+git-gpt commit [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--run-dry]
 ```
 
 Options:
 
 - `--lang`: Target language for the generated message (default is 'en').
 - `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
+- `--run-dry`: Print the generated message without committing.
 
 ### Creating Issues
 

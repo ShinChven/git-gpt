@@ -54,7 +54,8 @@ def config(api_key, base, model, lang, issue_max_tokens):
 @cli.command()
 @click.option('--lang', default=None, help='Target language for the generated message.')
 @click.option('--model', default=None, help='The model to use for generating the commit message.')
-def commit(lang, model):
+@click.option('--run-dry', is_flag=True, help='Run the command to print the commit message without actually committing.')
+def commit(lang, model, run_dry):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
         # Create the parent directory if it does not exist
@@ -97,6 +98,10 @@ def commit(lang, model):
     )
 
     commit_message = response['choices'][0]['message']['content'].strip()
+
+    if run_dry:
+        click.echo(f"Commit message generated successfully:\n\n{commit_message}")
+        return
     
     # Create a temporary file to hold the commit message
     with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
