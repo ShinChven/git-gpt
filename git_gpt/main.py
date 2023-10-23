@@ -73,7 +73,7 @@ def commit(lang, model, run_dry):
         return
 
     # If arguments are not provided via command line, try to get them from the config file
-    lang = lang or config.get('lang', 'en')
+    lang = lang or config.get('lang', 'English')
     model = model or config.get('model', 'gpt-3.5-turbo')
 
     repo = git.Repo(os.getcwd())
@@ -86,14 +86,15 @@ def commit(lang, model, run_dry):
         openai.api_base = f"{config['base']}/v1"
 
     # print loading animation
-    click.echo(f"Generating commit message with {model}...")
+    click.echo(f"Generating commit message with {model} in {lang}...")
 
     response = openai.ChatCompletion.create(
         model=model,
         messages=[
-            {"role": "system", "content": f"You are a senior programmer."},
-            {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and Description under 72 characters, written in {lang}.\nThe message should start with `feat:` or `fix`. Please summarize the Description in a list.\n\ndiffs:\n{diffs}"}
+            {"role": "system", "content": f"You are a copilot programmer."},
+            {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and a list of description of features under 72 characters, written in {lang}.\nThe message should start with `feat:` or `fix`. Please summarize the Description in a list.\n\ndiffs:\n{diffs}"}
         ],
+        max_tokens=200,
         stop=None
     )
 
@@ -143,7 +144,7 @@ def issue(lang, model, max_tokens, commit_range):
         return
 
     # If arguments are not provided via command line, try to get them from the config file
-    lang = lang or config.get('lang', 'en')
+    lang = lang or config.get('lang', 'English')
     model = model or config.get('model', 'gpt-3.5-turbo')
 
     repo = git.Repo(os.getcwd())
@@ -158,13 +159,13 @@ def issue(lang, model, max_tokens, commit_range):
         openai.api_base = f"{config['base']}/v1"
 
     # print loading animation
-    click.echo(f"Generating issue using {model}...")
+    click.echo(f"Generating issue using {model} in {lang}...")
 
     response = openai.ChatCompletion.create(
         model=model,
         messages=[
-            {"role": "system", "content": f"You are a senior programmer."},
-            {"role": "user", "content": f"Please answer me in {lang}.\nPlease write a development issue to introduce target and features according to the following changes:\n{diffs}. You should give a title. Please do not list the changes in the issue."}
+            {"role": "system", "content": f"You are a copilot programmer."},
+            {"role": "user", "content": f"Please write a development issue according to the changes below:\n```diff\n{diffs}```\n\n\n. The issue should contain a title, description, targets and tasks.\n**Please write the issue in {lang}.**"}
         ],
         max_tokens=max_tokens,
         stop=None
