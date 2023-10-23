@@ -159,7 +159,7 @@ def issue(lang, model, max_tokens, commit_range):
         model=model,
         messages=[
             {"role": "system", "content": f"You are a senior programmer."},
-            {"role": "user", "content": f"Please answer me in {lang}.\nPlease write a development issue to introduce target and features according to the following diffs:\n{diffs}. You should give a title."}
+            {"role": "user", "content": f"Please answer me in {lang}.\nPlease write a development issue to introduce target and features according to the following changes:\n{diffs}. You should give a title. Please do not list the changes in the issue."}
         ],
         max_tokens=max_tokens,
         stop=None
