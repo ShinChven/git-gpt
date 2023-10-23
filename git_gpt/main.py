@@ -18,9 +18,10 @@ def cli():
 @cli.command(help=f"Configure the CLI. Configuration will be saved to {os.path.expanduser('~/.config/git-gpt/config.json')}")
 @click.option('--api-key', help='The API key to use with OpenAI.')
 @click.option('--base', help='The alternative OpenAI host.')
+@click.option('--model', help='The model to use for generating the commit message.')
 @click.option('--lang', help='Target language for the generated message.')
 @click.option('--issue-max-tokens', type=int, help='The maximum number of tokens to use for the issue prompt.')
-def config(api_key, base, lang, issue_max_tokens):
+def config(api_key, base, model, lang, issue_max_tokens):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     
     # Load existing configuration if it exists
@@ -35,6 +36,8 @@ def config(api_key, base, lang, issue_max_tokens):
         config_data['api_key'] = api_key
     if base:
         config_data['base'] = base
+    if model:
+        config_data['model'] = model
     if lang:
         config_data['lang'] = lang
     if issue_max_tokens:
@@ -50,7 +53,8 @@ def config(api_key, base, lang, issue_max_tokens):
 
 @cli.command()
 @click.option('--lang', default=None, help='Target language for the generated message.')
-def commit(lang):
+@click.option('--model', default=None, help='The model to use for generating the commit message.')
+def commit(lang, model):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
         # Create the parent directory if it does not exist
@@ -69,6 +73,7 @@ def commit(lang):
 
     # If arguments are not provided via command line, try to get them from the config file
     lang = lang or config.get('lang', 'en')
+    model = model or config.get('model', 'gpt-3.5-turbo')
 
     repo = git.Repo(os.getcwd())
     # add all changes to staged
@@ -83,7 +88,7 @@ def commit(lang):
     click.echo("Generating commit message...")
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model=model,
         messages=[
             {"role": "system", "content": f"You are a senior programmer."},
             {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and Description under 72 characters, written in {lang}.\nThe message should start with `feat:` or `fix`. Please summarize the Description in a list.\n\ndiffs:\n{diffs}"}
