@@ -2,6 +2,8 @@
 
 A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT model.
 
+![generate-commit-message](/assets/generate-commit-message.webp)
+
 ## Installation
 
 Install `git-gpt` via pip:
