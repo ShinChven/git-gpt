@@ -47,6 +47,16 @@ git-gpt issue [--lang <LANGUAGE>] [--max-tokens <MAX_TOKENS>] [--commit-range <C
 - `--max-tokens`: The maximum number of tokens to use for the issue prompt.
 - `--commit-range`: The range of commits to consider for generating the issue.
 
+## Trouble Shooting
+
+### aiohttp
+
+If you encounter any issues concerning `aiohttp`, please try to downgrade python to 3.11, I encountered this issue when using python 3.12:
+
+```log
+ERROR: Could not build wheels for aiohttp, which is required to install pyproject.toml-based projects
+```
+
 ## Contributing
 
 Feel free to fork the repository, create a feature branch, and open a Pull Request.
