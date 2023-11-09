@@ -97,8 +97,6 @@ def commit(lang, model, run_dry):
     # replace [insert_language] with the target language
     prompt = prompt.replace('[insert_language]', lang)
 
-    print(prompt)
-
     response = openai.ChatCompletion.create(
         model=model,
         messages=[
