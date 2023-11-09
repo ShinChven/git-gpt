@@ -88,11 +88,23 @@ def commit(lang, model, run_dry):
     # print loading animation
     click.echo(f"Generating commit message with {model} in {lang}...")
 
+    # prompt = f"Given the staged diffs below:\n```diff\n[insert_diff]\n```\nAnalyze the code changes and generate a Git commit message that categorizes the update using the conventional commit message format 
+    # (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). Choose the tag that best represents the primary intent of the changes and provide a concise description and a list of details following the tag. Message should be less than 50 characters, details should be less than 70 characters. Write the message in [insert_language]. You don't repsond anything else, just the commit message."
+    prompt = f"Analyze staged diffs:\n```diff\n[insert_diff]\n```\nCraft a conventional commit message in [insert_language] with a tagged title under 50 characters and a list of details about changes under 70 characters. Use appropriate tag (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). Only provide the commit message and details.."
+
+    # replace [insert_diff] with the actual diffs
+    prompt = prompt.replace('[insert_diff]', diffs)
+    # replace [insert_language] with the target language
+    prompt = prompt.replace('[insert_language]', lang)
+
+    print(prompt)
+
     response = openai.ChatCompletion.create(
         model=model,
         messages=[
             {"role": "system", "content": f"You are a copilot programmer."},
-            {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and a list of description of features under 72 characters, written in {lang}.\nThe message should start with `feat:` or `fix`. Please summarize the Description in a list.\n\ndiffs:\n{diffs}"}
+            # {"role": "user", "content": f"Generate a commit message for the following diffs with a message under 50 characters and a list of description of features under 72 characters, written in {lang}.\nThe message should start with `feat:` or `fix`. Please summarize the Description in a list.\n\ndiffs:\n{diffs}"}
+            {"role": "user", "content": prompt}
         ],
         max_tokens=200,
         stop=None
