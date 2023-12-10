@@ -165,11 +165,8 @@ def issue(lang, model, max_tokens, commit_range):
     # if max tokens is not provided, use the default value
     max_tokens = max_tokens or config.get('issue_max_tokens', 1000)
 
-    client = OpenAI()
-
-    client.api_key = config['api_key']
-    if 'base' in config:
-        client.api_base = f"{config['base']}/v1"
+    base_url = config.get('base', 'https://api.openai.com')
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
 
     # print loading animation
     click.echo(f"Generating issue using {model} in {lang}...")
