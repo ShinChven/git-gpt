@@ -81,7 +81,9 @@ def commit(lang, model, run_dry):
     repo.git.add('--all')
     diffs = repo.git.diff('--staged')  # Get textual representation of staged diffs
 
-    client = OpenAI(api_key=config['api_key'], base_url=f"{config['base']}/v1")
+    base_url = config.get('base', 'https://api.openai.com')
+
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
 
     # print loading animation
     click.echo(f"Generating commit message with {model} in {lang}...")
