@@ -90,7 +90,7 @@ def commit(lang, model, run_dry):
 
     # prompt = f"Given the staged diffs below:\n```diff\n[insert_diff]\n```\nAnalyze the code changes and generate a Git commit message that categorizes the update using the conventional commit message format 
     # (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). Choose the tag that best represents the primary intent of the changes and provide a concise description and a list of details following the tag. Message should be less than 50 characters, details should be less than 70 characters. Write the message in [insert_language]. You don't repsond anything else, just the commit message."
-    prompt = f"Analyze staged diffs:\n```diff\n[insert_diff]\n```\nCraft a conventional commit message in [insert_language] with a tagged title under 50 characters and a list of details about changes under 70 characters. Use appropriate tag (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). Only provide the commit message and details.."
+    prompt = f"Analyze staged diffs:\n```text\n[insert_diff]\n```\nCraft a conventional commit message in [insert_language] with a tagged title under 50 characters and a list of details about changes under 70 characters. Use appropriate tag (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.).\nExample:\n[tag]: [Message]\n\nDetails:\n- [Detail item 1]\n- [Detail item 2]\n\n\n---\nImportant: - Only print the commit message and details."
 
     # replace [insert_diff] with the actual diffs
     prompt = prompt.replace('[insert_diff]', diffs)
