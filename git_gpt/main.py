@@ -5,7 +5,7 @@ import tempfile
 
 import click
 import git
-import openai
+from openai import OpenAI
 
 from git_gpt import __version__
 
@@ -81,9 +81,9 @@ def commit(lang, model, run_dry):
     repo.git.add('--all')
     diffs = repo.git.diff('--staged')  # Get textual representation of staged diffs
 
-    openai.api_key = config['api_key']
-    if 'base' in config:
-        openai.api_base = f"{config['base']}/v1"
+    base_url = config.get('base', 'https://api.openai.com')
+
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
 
     # print loading animation
     click.echo(f"Generating commit message with {model} in {lang}...")
@@ -97,7 +97,7 @@ def commit(lang, model, run_dry):
     # replace [insert_language] with the target language
     prompt = prompt.replace('[insert_language]', lang)
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": f"You are a copilot programmer."},
@@ -108,6 +108,7 @@ def commit(lang, model, run_dry):
         stop=None
     )
 
+    response = json.loads(response.model_dump_json())
     commit_message = response['choices'][0]['message']['content'].strip()
 
     if run_dry:
@@ -164,14 +165,13 @@ def issue(lang, model, max_tokens, commit_range):
     # if max tokens is not provided, use the default value
     max_tokens = max_tokens or config.get('issue_max_tokens', 1000)
 
-    openai.api_key = config['api_key']
-    if 'base' in config:
-        openai.api_base = f"{config['base']}/v1"
+    base_url = config.get('base', 'https://api.openai.com')
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
 
     # print loading animation
     click.echo(f"Generating issue using {model} in {lang}...")
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": f"You are a copilot programmer."},
@@ -180,6 +180,9 @@ def issue(lang, model, max_tokens, commit_range):
         max_tokens=max_tokens,
         stop=None
     )
+
+    response = json.loads(response.model_dump_json())
+    commit_message = response['choices'][0]['message']['content'].strip()
 
     issue = response['choices'][0]['message']['content'].strip()
     
