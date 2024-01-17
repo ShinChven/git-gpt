@@ -222,11 +222,25 @@ def quality(lang, model, max_tokens, commit_range):
 
     click.echo(f"Performing quality check using {model} in {lang}...")
 
+
+    prompt = (
+        f"I have a `git diff` output from my recent code changes, and I need help with a quality check. "
+        f"Could you assist me in reviewing the following aspects:\n\n"
+        f"1. Code Consistency: Please analyze if the changes are consistent with the existing coding style and standards in the project.\n"
+        f"2. Potential Bugs: Highlight any lines in the diff that might introduce bugs or logical errors.\n"
+        f"3. Best Practices: Suggest any improvements or best practices that could be applied to the changes.\n"
+        f"4. Documentation and Comments: Check if the new code is adequately commented and if any documentation needs to be updated.\n"
+        f"5. Performance Implications: Evaluate if there are any changes that might adversely affect the performance of the code.\n\n"
+        f"6. Security Check: Examine the code for potential security vulnerabilities, such as SQL injection, cross-site scripting, data leaks, or any other security risks.\n\n"
+        f"Here's the `git diff` output:\n```diff\n{diffs}```\n\n"
+        f"\nImportant: Please write a quality check report in `{lang}`."
+    )
+
     response = client.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": f"You are a copilot programmer."},
-            {"role": "user", "content": f"Please perform a quality check according to the changes below on quality, security, performance and etc.:\n```diff\n{diffs}```\n\n\n.\n**Please write the quality check report in {lang}.**"}
+            {"role": "user", "content": prompt}
         ],
         max_tokens=max_tokens,
         stop=None
