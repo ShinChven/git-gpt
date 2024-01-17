@@ -64,6 +64,21 @@ Options:
 - `--max-tokens`: The maximum number of tokens to use for the issue prompt.
 - `--commit-range`: The range of commits to consider for generating the issue.
 
+### Performing a quality check
+
+To perform a quality check on the diffs of the latest commit(s), run:
+
+```bash
+git-gpt quality [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+```
+
+Options:
+
+- `--lang`: Target language for the generated message (default is 'en').
+- `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
+- `--max-tokens`: The maximum number of tokens to use for the issue prompt.
+- `--commit-range`: The range of commits to consider for generating the issue.
+
 ## Trouble Shooting
 
 ### aiohttp
