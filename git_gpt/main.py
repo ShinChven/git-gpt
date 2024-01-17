@@ -226,7 +226,7 @@ def quality(lang, model, max_tokens, commit_range):
         model=model,
         messages=[
             {"role": "system", "content": f"You are a copilot programmer."},
-            {"role": "user", "content": f"Please perform a quality check according to the changes below:\n```diff\n{diffs}```\n\n\n.\n**Please write the quality check in {lang}.**"}
+            {"role": "user", "content": f"Please perform a quality check according to the changes below on quality, security, performance and etc.:\n```diff\n{diffs}```\n\n\n.\n**Please write the quality check report in {lang}.**"}
         ],
         max_tokens=max_tokens,
         stop=None
