@@ -189,5 +189,54 @@ def issue(lang, model, max_tokens, commit_range):
     click.echo(f"Issue created successfully:\n\n{issue}")
 
 
+@cli.command()
+@click.option('--lang', default=None, help='Target language for the generated message.')
+@click.option('--model', default=None, help='The model to use for generating the quality check.')
+@click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the quality check.')
+@click.option('--commit-range', type=int, help='The maximum number of tokens to use for the quality check.')
+def quality(lang, model, max_tokens, commit_range):
+    config_path = os.path.expanduser('~/.config/git-gpt/config.json')
+    if not os.path.exists(config_path):
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        with open(config_path, 'w') as config_file:
+            json.dump({}, config_file)
+
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
+
+    if 'api_key' not in config:
+        print("API key not set. Please set the API key in the config file at ~/.config/git-gpt/config.json")
+        print('You can config the API key by running `git-gpt config --api-key <API_KEY>`')
+        return
+
+    lang = lang or config.get('lang', 'English')
+    model = model or config.get('model', 'gpt-3.5-turbo')
+
+    repo = git.Repo(os.getcwd())
+    diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
+
+    max_tokens = max_tokens or config.get('quality_check_max_tokens', 1000)
+
+    base_url = config.get('base', 'https://api.openai.com')
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+
+    click.echo(f"Performing quality check using {model} in {lang}...")
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": f"You are a copilot programmer."},
+            {"role": "user", "content": f"Please perform a quality check according to the changes below:\n```diff\n{diffs}```\n\n\n.\n**Please write the quality check in {lang}.**"}
+        ],
+        max_tokens=max_tokens,
+        stop=None
+    )
+
+    response = json.loads(response.model_dump_json())
+    quality_check_result = response['choices'][0]['message']['content'].strip()
+
+    click.echo(f"Quality check performed successfully:\n\n{quality_check_result}")
+
+
 if __name__ == '__main__':
     cli()
