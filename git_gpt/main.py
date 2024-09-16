@@ -99,7 +99,7 @@ Please analyze staged diffs:
 ```diff
 [insert_diff]
 ```
-Then, craft a conventional commit message a title under 50 characters and a list of details about changes under 70 characters to describe the commit. 
+Then, craft a conventional commit message a title under 50 characters and a list of details about changes under 70 characters to describe the commit in [insert_language]. 
 Use appropriate type (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). 
 
 Here's the required format of the commit message
