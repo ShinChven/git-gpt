@@ -25,7 +25,7 @@ def cli():
 @click.option('--issue-max-tokens', type=int, help='The maximum number of tokens to use for the issue command.')
 @click.option('--changelog-max-tokens', type=int, help='The maximum number of tokens to use for the changelog command.')
 @click.option('--quality-check-max-tokens', type=int, help='The maximum number of tokens to use for the quality check command.')
-def config(api_key, base, model, lang, issue_max_tokens):
+def config(api_key, base, model, lang, issue_max_tokens, changelog_max_tokens, quality_check_max_tokens):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     
     # Load existing configuration if it exists
