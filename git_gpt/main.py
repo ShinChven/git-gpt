@@ -51,6 +51,26 @@ def config(api_key, base, model, lang, issue_max_tokens):
     click.echo(f'Configuration saved to: {config_path}')
 
 
+system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
+
+# https://www.conventionalcommits.org/en/v1.0.0/
+commit_message_prompt = f"""You are going to work as commit message generator, you will print the message without code block, and **You don't talk**.
+
+Please analyze staged diffs:
+```diff
+[insert_diff]
+```
+Then, craft a conventional commit message a title under 50 characters and a list of details about changes under 70 characters to describe the commit in [insert_language]. 
+Use appropriate type (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). 
+
+Here's the required format of the commit message
+<type>[optional scope]: <title>
+- [detail 1]
+- [detail 2]
+
+"""
+
+
 @cli.command()
 @click.option('--lang', default=None, help='Target language for the generated message.')
 @click.option('--model', default=None, help='The model to use for generating the commit message.')
@@ -88,26 +108,7 @@ def commit(lang, model, run_dry):
     # print loading animation
     click.echo(f"Generating commit message with {model} in {lang}...")
 
-    # prompt = f"Given the staged diffs below:\n```diff\n[insert_diff]\n```\nAnalyze the code changes and generate a Git commit message that categorizes the update using the conventional commit message format 
-    # (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). Choose the tag that best represents the primary intent of the changes and provide a concise description and a list of details following the tag. Message should be less than 50 characters, details should be less than 70 characters. Write the message in [insert_language]. You don't repsond anything else, just the commit message."
-    # prompt = f"Analyze staged diffs:\n```text\n[insert_diff]\n```\nCraft a conventional commit message in [insert_language] with a tagged title under 50 characters and a list of details about changes under 70 characters. Use appropriate tag (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.).\nExample:\n[tag]: Message\n\n- Detail item 1\n- Detail item 2\n\n\n---\n\nImportant: - Only print the commit message and details."
-
-    # https://www.conventionalcommits.org/en/v1.0.0/
-    prompt = f"""You are going to work as commit message generator, you will print the message without code block, and **You don't talk**.
-
-Please analyze staged diffs:
-```diff
-[insert_diff]
-```
-Then, craft a conventional commit message a title under 50 characters and a list of details about changes under 70 characters to describe the commit in [insert_language]. 
-Use appropriate type (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). 
-
-Here's the required format of the commit message
-<type>[optional scope]: <title>
-- [detail 1]
-- [detail 2]
-
-"""
+    prompt = commit_message_prompt
 
     # replace [insert_diff] with the actual diffs
     prompt = prompt.replace('[insert_diff]', diffs)
@@ -149,6 +150,61 @@ Here's the required format of the commit message
         # Clean up the temporary file
         os.remove(temp_file_name)
 
+
+issue_prompt = """You will work as a GitHub issue generator, and **you don't talk**, you will print the content in plain text without code block.
+Please generate a development issue according in [insert_language] to the changes below:
+```diff
+[insert_diff]
+```
+
+Issue template:
+
+## [Brief description of the feature or bug]
+
+## Description
+[Provide a detailed description of the feature to be implemented or the bug to be fixed]
+
+## Requirements
+- [ ] Requirement 1
+- [ ] Requirement 2
+- [ ] Requirement 3
+- [ ] ...
+
+## Acceptance Criteria
+- [ ] Criteria 1
+- [ ] Criteria 2
+- [ ] Criteria 3
+- [ ] ...
+
+## Technical Details
+[Provide any technical specifications, API endpoints, data models, etc.]
+
+## Dependencies
+- [List any dependencies or related issues]
+
+## Mockups/Screenshots
+[If applicable, include mockups or screenshots]
+
+## Additional Information
+[Any other relevant information, context, or resources]
+
+## Estimated Effort
+[Provide an estimate of the expected effort, e.g., story points or time]
+
+## Priority
+[Set the priority level: Low/Medium/High/Critical]
+
+## Assigned To
+[Name of the person assigned to this task]
+
+## Labels
+[Add relevant labels, e.g., "feature", "bug", "enhancement"]
+
+## Milestone
+[If applicable, link to the relevant milestone]
+
+"""
+
 @cli.command()
 @click.option('--lang', default=None, help='Target language for the generated message.')
 @click.option('--model', default=None, help='The model to use for generating the commit message.')
@@ -188,11 +244,13 @@ def issue(lang, model, max_tokens, commit_range):
     # print loading animation
     click.echo(f"Generating issue using {model} in {lang}...")
 
+    prompt = issue_prompt.replace('[insert_diff]', diffs).replace('[insert_language]', lang)
+
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": f"You are a copilot programmer."},
-            {"role": "user", "content": f"Please write a development issue according to the changes below:\n```diff\n{diffs}```\n\n\n. The issue should contain a title, description, targets and tasks.\n**Please write the issue in {lang}.**"}
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
         ],
         max_tokens=max_tokens,
         stop=None
