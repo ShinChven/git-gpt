@@ -9,6 +9,7 @@ from openai import OpenAI
 
 from git_gpt import __version__
 
+default_model = 'gpt-4o-mini'
 
 @click.group()
 @click.version_option(version=__version__, prog_name='git-gpt')
@@ -64,10 +65,32 @@ Then, craft a conventional commit message a title under 50 characters and a list
 Use appropriate type (e.g., 'feat:', 'fix:', 'docs:', 'style:', 'refactor:', 'test:', 'chore:', etc.). 
 
 Here's the required format of the commit message
-<type>[optional scope]: <title>
-- [detail 1]
-- [detail 2]
 
+```txt
+<type>[optional scope]: <title>
+
+Added(If applicable):
+- [List new features that have been added.]
+- [Include details about new modules, UI enhancements, etc.]
+
+Changed(If applicable):
+- [Describe any changes to existing functionality.]
+- [Note improvements, restructurings, or changes in behavior.]
+
+Deprecated(If applicable):
+- [Document any features that are still available but are not recommended for use and will be removed in future versions.]
+
+Removed(If applicable):
+- [List features or components that have been removed from this version.]
+
+Fixed(If applicable):
+- [Highlight fixed bugs or issues.]
+- [Include references to any tickets or bug report IDs if applicable.]
+
+Security(If applicable):
+- [Mention any security improvements or vulnerabilities addressed in this version.]
+
+```
 """
 
 
@@ -94,7 +117,7 @@ def commit(lang, model, run_dry):
 
     # If arguments are not provided via command line, try to get them from the config file
     lang = lang or config.get('lang', 'English')
-    model = model or config.get('model', 'gpt-3.5-turbo')
+    model = model or config.get('model', 'gpt-4o-mini')
 
     repo = git.Repo(os.getcwd())
     # add all changes to staged
@@ -228,7 +251,7 @@ def issue(lang, model, max_tokens, commit_range):
 
     # If arguments are not provided via command line, try to get them from the config file
     lang = lang or config.get('lang', 'English')
-    model = model or config.get('model', 'gpt-3.5-turbo')
+    model = model or config.get('model', default_model)
 
     repo = git.Repo(os.getcwd())
     # read the diffs of the latest commit
@@ -300,7 +323,7 @@ def quality(lang, model, max_tokens, commit_range):
         return
 
     lang = lang or config.get('lang', 'English')
-    model = model or config.get('model', 'gpt-3.5-turbo')
+    model = model or config.get('model', default_model)
 
     repo = git.Repo(os.getcwd())
     diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
@@ -329,6 +352,101 @@ def quality(lang, model, max_tokens, commit_range):
     quality_check_result = response['choices'][0]['message']['content'].strip()
 
     click.echo(f"Quality check performed successfully:\n\n{quality_check_result}")
+
+
+changelog_prompt = """
+I have a `git diff` output from my recent code changes, and I need help with a changelog written in [insert_language]. 
+
+## Changes
+```diff
+[insert_diff]
+```
+
+All notable changes to this project will be documented in this log.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Template:
+```md
+# Changelog
+
+## [Version x.x.x] - [insert date]
+
+### Added(If applicable)
+- [List new features that have been added.]
+- [Include details about new modules, UI enhancements, etc.]
+
+### Changed(If applicable)
+- [Describe any changes to existing functionality.]
+- [Note improvements, restructurings, or changes in behavior.]
+
+### Deprecated(If applicable)
+- [Document any features that are still available but are not recommended for use and will be removed in future versions.]
+
+### Removed(If applicable)
+- [List features or components that have been removed from this version.]
+
+### Fixed(If applicable)
+- [Highlight fixed bugs or issues.]
+- [Include references to any tickets or bug report IDs if applicable.]
+
+### Security(If applicable)
+- [Mention any security improvements or vulnerabilities addressed in this version.]
+```md
+"""
+
+
+@cli.command()
+@click.option('--lang', default=None, help='Target language for the generated changelog.')
+@click.option('--model', default=None, help='The model to use for generating the changelog.')
+@click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the changelog.')
+@click.option('--commit-range', type=int, help='The maximum number of tokens to use for the changelog.')
+def changelog(lang, model, max_tokens, commit_range):
+    config_path = os.path.expanduser('~/.config/git-gpt/config.json')
+    if not os.path.exists(config_path):
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        with open(config_path, 'w') as config_file:
+            json.dump({}, config_file)
+
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
+
+    if 'api_key' not in config:
+        print("API key not set. Please set the API key in the config file at ~/.config/git-gpt/config.json")
+        print('You can config the API key by running `git-gpt config --api-key <API_KEY>`')
+        return
+
+    lang = lang or config.get('lang', 'English')
+    model = model or config.get('model', default_model)
+
+    repo = git.Repo(os.getcwd())
+    diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
+
+    max_tokens = max_tokens or config.get('changelog_max_tokens', 1000)
+
+    base_url = config.get('base', 'https://api.openai.com')
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+
+    click.echo(f"Generating changelog using {model} in {lang}...")
+
+    prompt = changelog_prompt.replace('[insert_diff]', diffs).replace('[insert_language]', lang)
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=max_tokens,
+        stop=None
+    )
+
+    response = json.loads(response.model_dump_json())
+    changelog_result = response['choices'][0]['message']['content'].strip()
+
+    click.echo(f"Changelog generated successfully:\n\n{changelog_result}")
+
 
 
 if __name__ == '__main__':
