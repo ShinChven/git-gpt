@@ -129,7 +129,7 @@ def commit(lang, model, run_dry):
 
     base_url = config.get('base', 'https://api.openai.com')
 
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
 
     # print loading animation
     click.echo(f"Generating commit message with {model} in {lang}...")
@@ -264,7 +264,7 @@ def issue(lang, model, max_tokens, commit_range):
     max_tokens = max_tokens or config.get('issue_max_tokens', 2000)
 
     base_url = config.get('base', 'https://api.openai.com')
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
 
     # print loading animation
     click.echo(f"Generating issue using {model} in {lang}...")
@@ -333,7 +333,7 @@ def quality(lang, model, max_tokens, commit_range):
     max_tokens = max_tokens or config.get('quality_check_max_tokens', 2000)
 
     base_url = config.get('base', 'https://api.openai.com')
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
 
     click.echo(f"Performing quality check using {model} in {lang}...")
 
@@ -430,7 +430,7 @@ def changelog(lang, model, max_tokens, commit_range):
     max_tokens = max_tokens or config.get('changelog_max_tokens', 2000)
 
     base_url = config.get('base', 'https://api.openai.com')
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
 
     click.echo(f"Generating changelog using {model} in {lang}...")
 
@@ -484,7 +484,7 @@ def ask(model, commit_range, question):
     diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
     base_url = config.get('base', 'https://api.openai.com')
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
 
     click.echo(f"Generating answer using {model}...")
 
