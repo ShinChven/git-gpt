@@ -13,9 +13,17 @@ pip install git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
 ```
 
 Upgrade:
-  
+
 ```bash
 pip install --upgrade git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
+```
+
+## Development
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -e .
 ```
 
 ## Configuration
@@ -32,6 +40,8 @@ git-gpt config --api-key <API_KEY>
 - `--model`: The model to use for generating messages.
 - `--lang`: Target language for the generated message (default is 'en').
 - `--issue-max-tokens`: The maximum number of tokens to use for the issue prompt.
+- `--changelog-max-tokens`: The maximum number of tokens to use for the changelog prompt.
+- `--quality-check-max-tokens`: The maximum number of tokens to use for the quality check command.
 
 ## Usage
 
@@ -64,7 +74,7 @@ Options:
 - `--max-tokens`: The maximum number of tokens to use for the issue prompt.
 - `--commit-range`: The range of commits to consider for generating the issue.
 
-### Performing a quality check
+### Performing a Quality Check
 
 To perform a quality check on the diffs of the latest commit(s), run:
 
@@ -79,11 +89,40 @@ Options:
 - `--max-tokens`: The maximum number of tokens to use for the issue prompt.
 - `--commit-range`: The range of commits to consider for generating the issue.
 
+### Generating a Changelog
+
+To generate a changelog based on the diffs of the latest commit(s), run:
+
+```bash
+git-gpt changelog [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+```
+
+Options:
+
+- `--lang`: Target language for the generated changelog (default is 'en').
+- `--model`: The model to use for generating the changelog (default is 'gpt-3.5-turbo').
+- `--max-tokens`: The maximum number of tokens to use for the changelog prompt.
+- `--commit-range`: The range of commits to consider for generating the changelog.
+
+### Asking a Custom Question
+
+To ask a custom question about the code diffs, run:
+
+```bash
+git-gpt ask --question <YOUR_QUESTION> [--model <GPT-MODEL>] [--commit-range <COMMIT_RANGE>]
+```
+
+Options:
+
+- `--question`: The question to ask about the code diffs.
+- `--model`: The model to use for generating the response (default is 'gpt-3.5-turbo').
+- `--commit-range`: The range of commits to consider when forming the response.
+
 ## Trouble Shooting
 
 ### aiohttp
 
-If you encounter any issues concerning `aiohttp`, please try to downgrade python to 3.11, I encountered this issue when using python 3.12:
+If you encounter any issues concerning `aiohttp`, please try to downgrade python to 3.11, as this issue is reported with python 3.12:
 
 ```log
 ERROR: Could not build wheels for aiohttp, which is required to install pyproject.toml-based projects

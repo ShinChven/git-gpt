@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import tempfile
+from datetime import datetime
 
 import click
 import git
@@ -17,11 +18,13 @@ def cli():
     pass
 
 @cli.command(help=f"Configure the CLI. Configuration will be saved to {os.path.expanduser('~/.config/git-gpt/config.json')}")
-@click.option('--api-key', help='The API key to use with OpenAI.')
-@click.option('--base', help='The alternative OpenAI host.')
-@click.option('--model', help='The model to use for generating the commit message.')
-@click.option('--lang', help='Target language for the generated message.')
-@click.option('--issue-max-tokens', type=int, help='The maximum number of tokens to use for the issue prompt.')
+@click.option('--api-key', '-k', help='The API key to use with OpenAI.')
+@click.option('--base', '-b', help='The alternative OpenAI host.')
+@click.option('--model', '-m', help='The model to use for generating the commit message.')
+@click.option('--lang', '-l', help='Target language for the generated message.')
+@click.option('--issue-max-tokens', type=int, help='The maximum number of tokens to use for the issue command.')
+@click.option('--changelog-max-tokens', type=int, help='The maximum number of tokens to use for the changelog command.')
+@click.option('--quality-check-max-tokens', type=int, help='The maximum number of tokens to use for the quality check command.')
 def config(api_key, base, model, lang, issue_max_tokens):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     
@@ -95,9 +98,9 @@ Security(If applicable):
 
 
 @cli.command()
-@click.option('--lang', default=None, help='Target language for the generated message.')
-@click.option('--model', default=None, help='The model to use for generating the commit message.')
-@click.option('--run-dry', is_flag=True, help='Run the command to print the commit message without actually committing.')
+@click.option('--lang', '-l', default=None, help='Target language for the generated message.')
+@click.option('--model', '-m', default=None, help='The model to use for generating the commit message.')
+@click.option('--run-dry', '-d', is_flag=True, help='Run the command to print the commit message without actually committing.')
 def commit(lang, model, run_dry):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
@@ -122,7 +125,7 @@ def commit(lang, model, run_dry):
     repo = git.Repo(os.getcwd())
     # add all changes to staged
     repo.git.add('--all')
-    diffs = repo.git.diff('--staged')  # Get textual representation of staged diffs
+    diff = repo.git.diff('--staged')  # Get textual representation of staged diffs
 
     base_url = config.get('base', 'https://api.openai.com')
 
@@ -134,7 +137,7 @@ def commit(lang, model, run_dry):
     prompt = commit_message_prompt
 
     # replace [insert_diff] with the actual diffs
-    prompt = prompt.replace('[insert_diff]', diffs)
+    prompt = prompt.replace('[insert_diff]', diff)
     # replace [insert_language] with the target language
     prompt = prompt.replace('[insert_language]', lang)
 
@@ -228,10 +231,10 @@ Issue template:
 """
 
 @cli.command()
-@click.option('--lang', default=None, help='Target language for the generated message.')
-@click.option('--model', default=None, help='The model to use for generating the commit message.')
-@click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the issue prompt.')
-@click.option('--commit-range', type=int, help='The maximum number of tokens to use for the issue prompt.')
+@click.option('--lang', '-l', default=None, help='Target language for the generated message.')
+@click.option('--model', '-m', default=None, help='The model to use for generating the commit message.')
+@click.option('--max-tokens', '-t', type=int, help='The maximum number of tokens to use for the issue prompt.')
+@click.option('--commit-range', '-r', type=int, help='The maximum number of tokens to use for the issue prompt.')
 def issue(lang, model, max_tokens, commit_range):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
@@ -255,10 +258,10 @@ def issue(lang, model, max_tokens, commit_range):
 
     repo = git.Repo(os.getcwd())
     # read the diffs of the latest commit
-    diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')  # Get textual representation of staged diffs
+    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')  # Get textual representation of staged diffs
 
     # if max tokens is not provided, use the default value
-    max_tokens = max_tokens or config.get('issue_max_tokens', 1000)
+    max_tokens = max_tokens or config.get('issue_max_tokens', 2000)
 
     base_url = config.get('base', 'https://api.openai.com')
     client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
@@ -266,7 +269,7 @@ def issue(lang, model, max_tokens, commit_range):
     # print loading animation
     click.echo(f"Generating issue using {model} in {lang}...")
 
-    prompt = issue_prompt.replace('[insert_diff]', diffs).replace('[insert_language]', lang)
+    prompt = issue_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
 
     response = client.chat.completions.create(
         model=model,
@@ -279,7 +282,6 @@ def issue(lang, model, max_tokens, commit_range):
     )
 
     response = json.loads(response.model_dump_json())
-    commit_message = response['choices'][0]['message']['content'].strip()
 
     issue = response['choices'][0]['message']['content'].strip()
     
@@ -303,10 +305,10 @@ quality_prompt = """I have a `git diff` output from my recent code changes, and 
 """
 
 @cli.command()
-@click.option('--lang', default=None, help='Target language for the generated message.')
-@click.option('--model', default=None, help='The model to use for generating the quality check.')
-@click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the quality check.')
-@click.option('--commit-range', type=int, help='The maximum number of tokens to use for the quality check.')
+@click.option('--lang', '-l', default=None, help='Target language for the generated message.')
+@click.option('--model', '-m', default=None, help='The model to use for generating the quality check.')
+@click.option('--max-tokens', '-t', type=int, help='The maximum number of tokens to use for the quality check.')
+@click.option('--commit-range', '-r', type=int, help='The maximum number of tokens to use for the quality check.')
 def quality(lang, model, max_tokens, commit_range):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
@@ -326,9 +328,9 @@ def quality(lang, model, max_tokens, commit_range):
     model = model or config.get('model', default_model)
 
     repo = git.Repo(os.getcwd())
-    diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
+    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
-    max_tokens = max_tokens or config.get('quality_check_max_tokens', 1000)
+    max_tokens = max_tokens or config.get('quality_check_max_tokens', 2000)
 
     base_url = config.get('base', 'https://api.openai.com')
     client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
@@ -336,7 +338,7 @@ def quality(lang, model, max_tokens, commit_range):
     click.echo(f"Performing quality check using {model} in {lang}...")
 
 
-    prompt = quality_prompt.replace('[insert_diff]', diffs).replace('[insert_language]', lang)
+    prompt = quality_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
 
     response = client.chat.completions.create(
         model=model,
@@ -371,7 +373,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```md
 # Changelog
 
-## [Version x.x.x] - [insert date]
+## [Version x.x.x] - [insert_date]
+
+[write a detailed overview here.]
 
 ### Added(If applicable)
 - [List new features that have been added.]
@@ -398,10 +402,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 @cli.command()
-@click.option('--lang', default=None, help='Target language for the generated changelog.')
-@click.option('--model', default=None, help='The model to use for generating the changelog.')
-@click.option('--max-tokens', type=int, help='The maximum number of tokens to use for the changelog.')
-@click.option('--commit-range', type=int, help='The maximum number of tokens to use for the changelog.')
+@click.option('--lang', '-l', default=None, help='Target language for the generated changelog.')
+@click.option('--model', '-m', default=None, help='The model to use for generating the changelog.')
+@click.option('--max-tokens', '-t', type=int, help='The maximum number of tokens to use for the changelog.')
+@click.option('--commit-range', '-r', type=int, help='The maximum number of tokens to use for the changelog.')
 def changelog(lang, model, max_tokens, commit_range):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     if not os.path.exists(config_path):
@@ -421,16 +425,16 @@ def changelog(lang, model, max_tokens, commit_range):
     model = model or config.get('model', default_model)
 
     repo = git.Repo(os.getcwd())
-    diffs = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
+    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
-    max_tokens = max_tokens or config.get('changelog_max_tokens', 1000)
+    max_tokens = max_tokens or config.get('changelog_max_tokens', 2000)
 
     base_url = config.get('base', 'https://api.openai.com')
     client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
 
     click.echo(f"Generating changelog using {model} in {lang}...")
 
-    prompt = changelog_prompt.replace('[insert_diff]', diffs).replace('[insert_language]', lang)
+    prompt = changelog_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang).replace('[insert_date]', datetime.now().strftime('%Y-%m-%d'))
 
     response = client.chat.completions.create(
         model=model,
@@ -447,6 +451,58 @@ def changelog(lang, model, max_tokens, commit_range):
 
     click.echo(f"Changelog generated successfully:\n\n{changelog_result}")
 
+ask_prompt = """
+```diff
+[insert_diff]
+```
+[insert_question]
+"""
+
+@cli.command()
+@click.option('--model', '-m', default=None, help='The model to use for generating the changelog.')
+@click.option('--commit-range', '-r', type=int, help='The maximum number of tokens to use for the changelog.')
+@click.option('--question', '-q', help='The question to ask.', required=True)
+def ask(model, commit_range, question):
+    config_path = os.path.expanduser('~/.config/git-gpt/config.json')
+    if not os.path.exists(config_path):
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        with open(config_path, 'w') as config_file:
+            json.dump({}, config_file)
+
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
+
+    if 'api_key' not in config:
+        print("API key not set. Please set the API key in the config file at ~/.config/git-gpt/config.json")
+        print('You can config the API key by running `git-gpt config --api-key <API_KEY>`')
+        return
+
+    model = model or config.get('model', default_model)
+    question = question or config.get('question', '')
+
+    repo = git.Repo(os.getcwd())
+    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
+
+    base_url = config.get('base', 'https://api.openai.com')
+    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}/v1")
+
+    click.echo(f"Generating answer using {model}...")
+
+    prompt = ask_prompt.replace('[insert_diff]', diff).replace('[insert_question]', question)
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a helpful code assistant, you will help users with their code, you will reply users in their language."},
+            {"role": "user", "content": prompt}
+        ],
+        stop=None
+    )
+
+    response = json.loads(response.model_dump_json())
+    ask_result = response['choices'][0]['message']['content'].strip()
+
+    click.echo(f"Changelog generated successfully:\n\n{ask_result}")
 
 
 if __name__ == '__main__':

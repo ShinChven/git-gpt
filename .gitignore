@@ -6,6 +6,7 @@ venv/
 # Python related files
 *.pyc
 __pycache__/
+.pytest_cache
 *.pyo
 *.egg-info/
 dist/
