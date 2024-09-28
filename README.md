@@ -9,18 +9,22 @@ A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT mo
 Install `git-gpt` via pip:
 
 ```bash
-pip install git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
+pip install git+https://github.com/ShinChven/git-gpt.git
 ```
 
 Upgrade:
 
 ```bash
-pip install --upgrade git+https://github.com/ShinChven/git-gpt.git#egg=git-gpt
+pip install --upgrade git+https://github.com/ShinChven/git-gpt.git
 ```
 
 ## Development
 
+To set up the development environment:
+
 ```bash
+git clone https://github.com/ShinChven/git-gpt.git
+cd git-gpt
 python -m venv venv
 source venv/bin/activate
 pip install -e .
