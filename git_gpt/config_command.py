@@ -2,7 +2,20 @@ import json
 import os
 import click
 
-@click.command(help=f"Configure the CLI. Configuration will be saved to {os.path.expanduser('~/.config/git-gpt/config.json')}")
+CONFIG_PATH = os.path.expanduser('~/.config/git-gpt/config.json')
+
+def load_config():
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH, 'r') as config_file:
+            return json.load(config_file)
+    return {}
+
+def save_config(config_data):
+    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+    with open(CONFIG_PATH, 'w') as config_file:
+        json.dump(config_data, config_file, indent=4, sort_keys=True)
+
+@click.command(help=f"Configure the CLI. Configuration will be saved to {CONFIG_PATH}")
 @click.option('--api-key', '-k', help='The API key to use with OpenAI.')
 @click.option('--base', '-b', help='The alternative OpenAI host.')
 @click.option('--model', '-m', help='The model to use for generating the commit message.')
@@ -13,14 +26,7 @@ import click
 @click.option('--api-type', type=click.Choice(['openai', 'ollama']), help='The type of API to use (openai or ollama).')
 @click.option('--ollama-base', help='The base URL for Ollama API.')
 def config(api_key, base, model, lang, max_tokens_quality, max_tokens_issue, max_tokens_changelog, api_type, ollama_base):
-    config_path = os.path.expanduser('~/.config/git-gpt/config.json')
-    
-    # Load existing configuration if it exists
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as config_file:
-            config_data = json.load(config_file)
-    else:
-        config_data = {}
+    config_data = load_config()
 
     # Update configuration with provided arguments
     if api_key:
@@ -42,10 +48,22 @@ def config(api_key, base, model, lang, max_tokens_quality, max_tokens_issue, max
     if ollama_base:
         config_data['ollama_base'] = ollama_base
 
-    # Save updated configuration with formatting
-    os.makedirs(os.path.dirname(config_path), exist_ok=True)
-    with open(config_path, 'w') as config_file:
-        json.dump(config_data, config_file, indent=4, sort_keys=True)
+    # Validate API type and base URL combinations
+    if config_data.get('api_type') == 'openai' and 'base' not in config_data:
+        config_data['base'] = 'https://api.openai.com'
+    elif config_data.get('api_type') == 'ollama' and 'ollama_base' not in config_data:
+        config_data['ollama_base'] = 'http://localhost:11434'
+
+    save_config(config_data)
     
-    # Output message indicating the location of the config file
-    click.echo(f'Configuration saved to: {config_path}')
+    click.echo(f'Configuration saved to: {CONFIG_PATH}')
+    click.echo('Current configuration:')
+    for key, value in config_data.items():
+        if key != 'api_key':
+            click.echo(f'{key}: {value}')
+        else:
+            click.echo(f'{key}: {"*" * len(value)}')  # Mask the API key
+
+# This function can be imported and used in other command files
+def get_config():
+    return load_config()

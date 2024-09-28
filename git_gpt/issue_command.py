@@ -1,8 +1,7 @@
-import json
-import os
 import click
 import git
 from .request_module import RequestModule
+from .config_command import get_config
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
@@ -66,44 +65,22 @@ Issue template:
 @click.option('--max-tokens', '-t', type=int, help='The maximum number of tokens to use for the issue prompt.')
 @click.option('--commit-range', '-r', type=int, help='The number of commits to include in the diff.')
 def issue(lang, model, max_tokens, commit_range):
-    config_path = os.path.expanduser('~/.config/git-gpt/config.json')
-    if not os.path.exists(config_path):
-        # Create the parent directory if it does not exist
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        # Create the config file with an empty dictionary
-        with open(config_path, 'w') as config_file:
-            json.dump({}, config_file)
-
-    with open(config_path, 'r') as config_file:
-        config = json.load(config_file)
+    config = get_config()
 
     if 'api_key' not in config:
-        print("API key not set. Please set the API key in the config file at ~/.config/git-gpt/config.json")
-        print('You can config the API key by running `git-gpt config --api-key <API_KEY>`')
+        click.echo("API key not set. Please set the API key using `git-gpt config --api-key <API_KEY>`")
         return
 
-    # If arguments are not provided via command line, try to get them from the config file
     lang = lang or config.get('lang', 'English')
     model = model or config.get('model', 'gpt-4o-mini')
 
     repo = git.Repo(os.getcwd())
-    # read the diffs of the latest commit
-    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')  # Get textual representation of staged diffs
+    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
-    # if max tokens is not provided, use the default value
     max_tokens = max_tokens or config.get('issue_max_tokens', 2000)
 
-    api_type = config.get('api_type', 'openai')
-    if api_type == 'openai':
-        base_url = config.get('base', 'https://api.openai.com')
-    elif api_type == 'ollama':
-        base_url = config.get('ollama_base', 'http://localhost:11434')
-    else:
-        raise ValueError(f"Unsupported API type: {api_type}")
+    request_module = RequestModule(config)
 
-    request_module = RequestModule(api_type=api_type, api_key=config['api_key'], api_base=base_url)
-
-    # print loading animation
     click.echo(f"Generating issue using {model} in {lang}...")
 
     prompt = issue_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
@@ -113,8 +90,10 @@ def issue(lang, model, max_tokens, commit_range):
         {"role": "user", "content": prompt}
     ]
 
-    response = request_module.send_request(messages=messages, model=model, temperature=0.7)
-
-    issue = response['choices'][0]['message']['content'].strip()
-    
-    click.echo(f"Issue created successfully:\n\n{issue}")
+    try:
+        response = request_module.send_request(messages=messages, model=model, temperature=0.7)
+        issue_content = request_module.get_response_content(response)
+        click.echo(f"Issue generated successfully:\n\n{issue_content}")
+    except Exception as e:
+        click.echo(f"Error generating issue: {str(e)}")
+        click.echo("Please check the request_module.py file for more details on the error.")

@@ -1,8 +1,7 @@
-import json
-import os
 import click
 import git
 from .request_module import RequestModule
+from .config_command import get_config
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
@@ -28,18 +27,10 @@ quality_prompt = """I have a `git diff` output from my recent code changes, and 
 @click.option('--max-tokens', '-t', type=int, help='The maximum number of tokens to use for the quality check.')
 @click.option('--commit-range', '-r', type=int, help='The number of commits to include in the diff.')
 def quality(lang, model, max_tokens, commit_range):
-    config_path = os.path.expanduser('~/.config/git-gpt/config.json')
-    if not os.path.exists(config_path):
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        with open(config_path, 'w') as config_file:
-            json.dump({}, config_file)
-
-    with open(config_path, 'r') as config_file:
-        config = json.load(config_file)
+    config = get_config()
 
     if 'api_key' not in config:
-        print("API key not set. Please set the API key in the config file at ~/.config/git-gpt/config.json")
-        print('You can config the API key by running `git-gpt config --api-key <API_KEY>`')
+        click.echo("API key not set. Please set the API key using `git-gpt config --api-key <API_KEY>`")
         return
 
     lang = lang or config.get('lang', 'English')
@@ -50,15 +41,7 @@ def quality(lang, model, max_tokens, commit_range):
 
     max_tokens = max_tokens or config.get('quality_check_max_tokens', 2000)
 
-    api_type = config.get('api_type', 'openai')
-    if api_type == 'openai':
-        base_url = config.get('base', 'https://api.openai.com')
-    elif api_type == 'ollama':
-        base_url = config.get('ollama_base', 'http://localhost:11434')
-    else:
-        raise ValueError(f"Unsupported API type: {api_type}")
-
-    request_module = RequestModule(api_type=api_type, api_key=config['api_key'], api_base=base_url)
+    request_module = RequestModule(config)
 
     click.echo(f"Performing quality check using {model} in {lang}...")
 
@@ -69,8 +52,10 @@ def quality(lang, model, max_tokens, commit_range):
         {"role": "user", "content": prompt}
     ]
 
-    response = request_module.send_request(messages=messages, model=model, temperature=0.7)
-
-    quality_check_result = response['choices'][0]['message']['content'].strip()
-
-    click.echo(f"Quality check performed successfully:\n\n{quality_check_result}")
+    try:
+        response = request_module.send_request(messages=messages, model=model, temperature=0.7)
+        quality_check_result = request_module.get_response_content(response)
+        click.echo(f"Quality check performed successfully:\n\n{quality_check_result}")
+    except Exception as e:
+        click.echo(f"Error performing quality check: {str(e)}")
+        click.echo("Please check the request_module.py file for more details on the error.")
