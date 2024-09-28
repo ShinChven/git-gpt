@@ -30,6 +30,21 @@ source venv/bin/activate
 pip install -e .
 ```
 
+### Project Structure
+
+The project is organized as follows:
+
+- `git_gpt/main.py`: The main entry point of the CLI application.
+- `git_gpt/__init__.py`: Initializes the package and defines the version.
+- `git_gpt/config_command.py`: Handles the configuration command.
+- `git_gpt/commit_command.py`: Implements the commit message generation.
+- `git_gpt/issue_command.py`: Manages the issue creation functionality.
+- `git_gpt/quality_command.py`: Performs quality checks on code changes.
+- `git_gpt/changelog_command.py`: Generates changelogs based on commits.
+- `git_gpt/ask_command.py`: Allows asking custom questions about code diffs.
+
+Each command is implemented in its own file for better organization and maintainability.
+
 ## Configuration
 
 Before using `git-gpt`, you'll need to configure it with your OpenAI API key and other optional settings. Run the following command and follow the prompts:
