@@ -2,6 +2,8 @@
 
 A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT model or Ollama.
 
+Use ollama might be a more secure way to generate commit messages and issues. Your data will not be sent to any third-party server.
+
 ![generate-commit-message](/assets/generate-commit-message.webp)
 
 ## Installation
