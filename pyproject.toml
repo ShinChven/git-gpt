@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "git_gpt"
-version = "0.8.1"
+version = "0.9.0"
 authors = [
     {name = "ShinChven", email = "shinchven@gmail.com"},
 ]
-description = "A CLI tool to generate commit messages and issues based on staged Git diffs using OpenAI GPT-3.5-turbo"
+description = "A CLI tool to generate commit messages and issues based on staged Git diffs using OpenAI GPT models or Ollama"
 readme = "README.md"
 requires-python = ">=3.7"
 license = {text = "MIT"}
@@ -22,6 +22,7 @@ dependencies = [
     "openai",
     "gitpython",
     "tomli",
+    "requests",
 ]
 
 [project.urls]

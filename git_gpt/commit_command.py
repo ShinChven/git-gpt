@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 import click
 import git
-from openai import OpenAI
+from .request_module import RequestModule
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
@@ -76,9 +76,15 @@ def commit(lang, model, run_dry):
     repo.git.add('--all')
     diff = repo.git.diff('--staged')  # Get textual representation of staged diffs
 
-    base_url = config.get('base', 'https://api.openai.com')
+    api_type = config.get('api_type', 'openai')
+    if api_type == 'openai':
+        base_url = config.get('base', 'https://api.openai.com')
+    elif api_type == 'ollama':
+        base_url = config.get('ollama_base', 'http://localhost:11434')
+    else:
+        raise ValueError(f"Unsupported API type: {api_type}")
 
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
+    request_module = RequestModule(api_type=api_type, api_key=config['api_key'], api_base=base_url)
 
     # print loading animation
     click.echo(f"Generating commit message with {model} in {lang}...")
@@ -90,17 +96,13 @@ def commit(lang, model, run_dry):
     # replace [insert_language] with the target language
     prompt = prompt.replace('[insert_language]', lang)
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=200,
-        stop=None
-    )
+    messages = [
+        {"role": "system", "content": system_instruction},
+        {"role": "user", "content": prompt}
+    ]
 
-    response = json.loads(response.model_dump_json())
+    response = request_module.send_request(messages=messages, model=model, temperature=0.7)
+
     commit_message = response['choices'][0]['message']['content'].strip()
 
     if run_dry:

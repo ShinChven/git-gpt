@@ -1,6 +1,6 @@
 # Git-GPT
 
-A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT model.
+A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT model or Ollama.
 
 ![generate-commit-message](/assets/generate-commit-message.webp)
 
@@ -42,40 +42,56 @@ The project is organized as follows:
 - `git_gpt/quality_command.py`: Performs quality checks on code changes.
 - `git_gpt/changelog_command.py`: Generates changelogs based on commits.
 - `git_gpt/ask_command.py`: Allows asking custom questions about code diffs.
+- `git_gpt/request_module.py`: Handles API requests to OpenAI or Ollama.
 
 Each command is implemented in its own file for better organization and maintainability.
 
 ## Configuration
 
-Before using `git-gpt`, you'll need to configure it with your OpenAI API key and other optional settings. Run the following command and follow the prompts:
+Before using `git-gpt`, you'll need to configure it with your API settings. Run the following command and follow the prompts:
 
 ```bash
-git-gpt config --api-key <API_KEY>
+git-gpt config --api-key <API_KEY> --api-type <API_TYPE>
 ```
 
 ### Options:
-- `--api-key`: The API key to use with OpenAI.
+- `--api-key`: The API key to use with OpenAI (not required for Ollama).
 - `--base`: The alternative OpenAI host.
 - `--model`: The model to use for generating messages.
 - `--lang`: Target language for the generated message (default is 'en').
 - `--max-tokens-quality`: Maximum number of tokens for quality module responses.
 - `--max-tokens-issue`: Maximum number of tokens for issue module responses.
 - `--max-tokens-changelog`: Maximum number of tokens for changelog module responses.
+- `--api-type`: The type of API to use ('openai' or 'ollama').
+- `--ollama-base`: The base URL for Ollama API (e.g., 'http://localhost:11434').
+
+## Ollama Support
+
+Git-GPT now supports Ollama, an open-source, locally hosted language model. To use Ollama:
+
+1. Install and set up Ollama on your local machine (visit [Ollama's website](https://ollama.ai/) for instructions).
+2. Configure Git-GPT to use Ollama:
+
+```bash
+git-gpt config --api-type ollama --ollama-base http://localhost:11434 --model llama2
+```
+
+Replace `llama2` with any other model you have pulled in Ollama.
 
 ## Usage
 
 ### Generating Commit Messages
 
-Stage all changes and generate a commit message using GPT model:
+Stage all changes and generate a commit message:
 
 ```bash
-git-gpt commit [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--run-dry]
+git-gpt commit [--lang <LANGUAGE>] [--model <MODEL>] [--run-dry]
 ```
 
 Options:
 
 - `--lang`: Target language for the generated message (default is 'en').
-- `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
+- `--model`: The model to use for generating messages (default is set in config).
 - `--run-dry`: Print the generated message without committing.
 
 ### Creating Issues
@@ -83,13 +99,13 @@ Options:
 To create an issue based on the diffs of the latest commit(s), run:
 
 ```bash
-git-gpt issue [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+git-gpt issue [--lang <LANGUAGE>] [--model <MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
 ```
 
 Options:
 
 - `--lang`: Target language for the generated message (default is 'en').
-- `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
+- `--model`: The model to use for generating messages (default is set in config).
 - `--max-tokens`: The maximum number of tokens to use for the issue prompt (overrides the configured value).
 - `--commit-range`: The range of commits to consider for generating the issue.
 
@@ -98,13 +114,13 @@ Options:
 To perform a quality check on the diffs of the latest commit(s), run:
 
 ```bash
-git-gpt quality [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+git-gpt quality [--lang <LANGUAGE>] [--model <MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
 ```
 
 Options:
 
 - `--lang`: Target language for the generated message (default is 'en').
-- `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
+- `--model`: The model to use for generating messages (default is set in config).
 - `--max-tokens`: The maximum number of tokens to use for the quality check prompt (overrides the configured value).
 - `--commit-range`: The range of commits to consider for the quality check.
 
@@ -113,13 +129,13 @@ Options:
 To generate a changelog based on the diffs of the latest commit(s), run:
 
 ```bash
-git-gpt changelog [--lang <LANGUAGE>] [--model <GPT-MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
+git-gpt changelog [--lang <LANGUAGE>] [--model <MODEL>] [--max-tokens <MAX_TOKENS>] [--commit-range <COMMIT_RANGE>]
 ```
 
 Options:
 
 - `--lang`: Target language for the generated changelog (default is 'en').
-- `--model`: The model to use for generating the changelog (default is 'gpt-3.5-turbo').
+- `--model`: The model to use for generating the changelog (default is set in config).
 - `--max-tokens`: The maximum number of tokens to use for the changelog prompt (overrides the configured value).
 - `--commit-range`: The range of commits to consider for generating the changelog.
 
@@ -128,13 +144,13 @@ Options:
 To ask a custom question about the code diffs, run:
 
 ```bash
-git-gpt ask --question <YOUR_QUESTION> [--model <GPT-MODEL>] [--commit-range <COMMIT_RANGE>]
+git-gpt ask --question <YOUR_QUESTION> [--model <MODEL>] [--commit-range <COMMIT_RANGE>]
 ```
 
 Options:
 
 - `--question`: The question to ask about the code diffs.
-- `--model`: The model to use for generating the response (default is 'gpt-3.5-turbo').
+- `--model`: The model to use for generating the response (default is set in config).
 - `--commit-range`: The range of commits to consider when forming the response.
 
 ## Trouble Shooting

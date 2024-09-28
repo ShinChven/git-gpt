@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 import click
 import git
-from openai import OpenAI
+from .request_module import RequestModule
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
@@ -79,24 +79,27 @@ def changelog(lang, model, max_tokens, commit_range):
 
     max_tokens = max_tokens or config.get('changelog_max_tokens', 2000)
 
-    base_url = config.get('base', 'https://api.openai.com')
-    client = OpenAI(api_key=config['api_key'], base_url=f"{base_url}")
+    api_type = config.get('api_type', 'openai')
+    if api_type == 'openai':
+        base_url = config.get('base', 'https://api.openai.com')
+    elif api_type == 'ollama':
+        base_url = config.get('ollama_base', 'http://localhost:11434')
+    else:
+        raise ValueError(f"Unsupported API type: {api_type}")
+
+    request_module = RequestModule(api_type=api_type, api_key=config['api_key'], api_base=base_url)
 
     click.echo(f"Generating changelog using {model} in {lang}...")
 
     prompt = changelog_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang).replace('[insert_date]', datetime.now().strftime('%Y-%m-%d'))
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=max_tokens,
-        stop=None
-    )
+    messages = [
+        {"role": "system", "content": system_instruction},
+        {"role": "user", "content": prompt}
+    ]
 
-    response = json.loads(response.model_dump_json())
+    response = request_module.send_request(messages=messages, model=model, temperature=0.7)
+
     changelog_result = response['choices'][0]['message']['content'].strip()
 
     click.echo(f"Changelog generated successfully:\n\n{changelog_result}")

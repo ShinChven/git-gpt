@@ -10,7 +10,9 @@ import click
 @click.option('--max-tokens-quality', type=int, help='Maximum number of tokens for quality module responses.')
 @click.option('--max-tokens-issue', type=int, help='Maximum number of tokens for issue module responses.')
 @click.option('--max-tokens-changelog', type=int, help='Maximum number of tokens for changelog module responses.')
-def config(api_key, base, model, lang, max_tokens_quality, max_tokens_issue, max_tokens_changelog):
+@click.option('--api-type', type=click.Choice(['openai', 'ollama']), help='The type of API to use (openai or ollama).')
+@click.option('--ollama-base', help='The base URL for Ollama API.')
+def config(api_key, base, model, lang, max_tokens_quality, max_tokens_issue, max_tokens_changelog, api_type, ollama_base):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     
     # Load existing configuration if it exists
@@ -35,6 +37,10 @@ def config(api_key, base, model, lang, max_tokens_quality, max_tokens_issue, max
         config_data['max_tokens_issue'] = max_tokens_issue
     if max_tokens_changelog is not None:
         config_data['max_tokens_changelog'] = max_tokens_changelog
+    if api_type:
+        config_data['api_type'] = api_type
+    if ollama_base:
+        config_data['ollama_base'] = ollama_base
 
     # Save updated configuration with formatting
     os.makedirs(os.path.dirname(config_path), exist_ok=True)
