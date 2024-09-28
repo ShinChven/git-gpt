@@ -2,6 +2,7 @@ import click
 import git
 from .request_module import RequestModule
 from .config_command import get_config
+import os
 
 ask_prompt = """
 ```diff

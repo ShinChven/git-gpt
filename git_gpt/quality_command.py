@@ -2,6 +2,7 @@ import click
 import git
 from .request_module import RequestModule
 from .config_command import get_config
+import os
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
