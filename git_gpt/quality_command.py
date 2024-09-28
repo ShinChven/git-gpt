@@ -30,10 +30,6 @@ quality_prompt = """I have a `git diff` output from my recent code changes, and 
 def quality(lang, model, max_tokens, commit_range):
     config = get_config()
 
-    if 'api_key' not in config:
-        click.echo("API key not set. Please set the API key using `git-gpt config --api-key <API_KEY>`")
-        return
-
     lang = lang or config.get('lang', 'English')
     model = model or config.get('model', 'gpt-4o-mini')
 
@@ -42,21 +38,24 @@ def quality(lang, model, max_tokens, commit_range):
 
     max_tokens = max_tokens or config.get('quality_check_max_tokens', 2000)
 
-    request_module = RequestModule(config)
-
-    click.echo(f"Performing quality check using {model} in {lang}...")
-
-    prompt = quality_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
-
-    messages = [
-        {"role": "system", "content": system_instruction},
-        {"role": "user", "content": prompt}
-    ]
-
     try:
+        request_module = RequestModule(config)
+
+        click.echo(f"Performing quality check using {model} in {lang}...")
+
+        prompt = quality_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
+
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ]
+
         response = request_module.send_request(messages=messages, model=model, temperature=0.7)
         quality_check_result = request_module.get_response_content(response)
         click.echo(f"Quality check performed successfully:\n\n{quality_check_result}")
+    except ValueError as e:
+        click.echo(f"Error: {str(e)}")
+        click.echo("Please make sure you have set the API key using `git-gpt config --api-key <API_KEY>`")
     except Exception as e:
         click.echo(f"Error performing quality check: {str(e)}")
         click.echo("Please check the request_module.py file for more details on the error.")

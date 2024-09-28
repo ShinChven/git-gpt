@@ -59,10 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 def changelog(lang, model, max_tokens, commit_range):
     config = get_config()
 
-    if 'api_key' not in config:
-        click.echo("API key not set. Please set the API key using `git-gpt config --api-key <API_KEY>`")
-        return
-
     lang = lang or config.get('lang', 'English')
     model = model or config.get('model', 'gpt-4o-mini')
 
@@ -71,21 +67,24 @@ def changelog(lang, model, max_tokens, commit_range):
 
     max_tokens = max_tokens or config.get('changelog_max_tokens', 2000)
 
-    request_module = RequestModule(config)
-
-    click.echo(f"Generating changelog using {model} in {lang}...")
-
-    prompt = changelog_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang).replace('[insert_date]', datetime.now().strftime('%Y-%m-%d'))
-
-    messages = [
-        {"role": "system", "content": system_instruction},
-        {"role": "user", "content": prompt}
-    ]
-
     try:
+        request_module = RequestModule(config)
+
+        click.echo(f"Generating changelog using {model} in {lang}...")
+
+        prompt = changelog_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang).replace('[insert_date]', datetime.now().strftime('%Y-%m-%d'))
+
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ]
+
         response = request_module.send_request(messages=messages, model=model, temperature=0.7)
         changelog_result = request_module.get_response_content(response)
         click.echo(f"Changelog generated successfully:\n\n{changelog_result}")
+    except ValueError as e:
+        click.echo(f"Error: {str(e)}")
+        click.echo("Please make sure you have set the API key using `git-gpt config --api-key <API_KEY>`")
     except Exception as e:
         click.echo(f"Error generating changelog: {str(e)}")
         click.echo("Please check the request_module.py file for more details on the error.")

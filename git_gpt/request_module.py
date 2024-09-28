@@ -8,6 +8,9 @@ class RequestModule:
         self.api_type = config.get('api_type', 'openai')
         self.api_key = config.get('api_key')
         
+        if not self.api_key:
+            raise ValueError("API key not set. Please set the API key using `git-gpt config --api-key <API_KEY>`")
+
         if self.api_type == 'openai':
             self.api_base = config.get('base', 'https://api.openai.com/v1')
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_base)
