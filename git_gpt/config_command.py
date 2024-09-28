@@ -7,7 +7,10 @@ import click
 @click.option('--base', '-b', help='The alternative OpenAI host.')
 @click.option('--model', '-m', help='The model to use for generating the commit message.')
 @click.option('--lang', '-l', help='Target language for the generated message.')
-def config(api_key, base, model, lang):
+@click.option('--max-tokens-quality', type=int, help='Maximum number of tokens for quality module responses.')
+@click.option('--max-tokens-issue', type=int, help='Maximum number of tokens for issue module responses.')
+@click.option('--max-tokens-changelog', type=int, help='Maximum number of tokens for changelog module responses.')
+def config(api_key, base, model, lang, max_tokens_quality, max_tokens_issue, max_tokens_changelog):
     config_path = os.path.expanduser('~/.config/git-gpt/config.json')
     
     # Load existing configuration if it exists
@@ -26,6 +29,12 @@ def config(api_key, base, model, lang):
         config_data['model'] = model
     if lang:
         config_data['lang'] = lang
+    if max_tokens_quality is not None:
+        config_data['max_tokens_quality'] = max_tokens_quality
+    if max_tokens_issue is not None:
+        config_data['max_tokens_issue'] = max_tokens_issue
+    if max_tokens_changelog is not None:
+        config_data['max_tokens_changelog'] = max_tokens_changelog
 
     # Save updated configuration with formatting
     os.makedirs(os.path.dirname(config_path), exist_ok=True)

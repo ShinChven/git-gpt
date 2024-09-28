@@ -58,9 +58,9 @@ git-gpt config --api-key <API_KEY>
 - `--base`: The alternative OpenAI host.
 - `--model`: The model to use for generating messages.
 - `--lang`: Target language for the generated message (default is 'en').
-- `--issue-max-tokens`: The maximum number of tokens to use for the issue prompt.
-- `--changelog-max-tokens`: The maximum number of tokens to use for the changelog prompt.
-- `--quality-check-max-tokens`: The maximum number of tokens to use for the quality check command.
+- `--max-tokens-quality`: Maximum number of tokens for quality module responses.
+- `--max-tokens-issue`: Maximum number of tokens for issue module responses.
+- `--max-tokens-changelog`: Maximum number of tokens for changelog module responses.
 
 ## Usage
 
@@ -90,7 +90,7 @@ Options:
 
 - `--lang`: Target language for the generated message (default is 'en').
 - `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
-- `--max-tokens`: The maximum number of tokens to use for the issue prompt.
+- `--max-tokens`: The maximum number of tokens to use for the issue prompt (overrides the configured value).
 - `--commit-range`: The range of commits to consider for generating the issue.
 
 ### Performing a Quality Check
@@ -105,8 +105,8 @@ Options:
 
 - `--lang`: Target language for the generated message (default is 'en').
 - `--model`: The model to use for generating messages (default is 'gpt-3.5-turbo').
-- `--max-tokens`: The maximum number of tokens to use for the issue prompt.
-- `--commit-range`: The range of commits to consider for generating the issue.
+- `--max-tokens`: The maximum number of tokens to use for the quality check prompt (overrides the configured value).
+- `--commit-range`: The range of commits to consider for the quality check.
 
 ### Generating a Changelog
 
@@ -120,7 +120,7 @@ Options:
 
 - `--lang`: Target language for the generated changelog (default is 'en').
 - `--model`: The model to use for generating the changelog (default is 'gpt-3.5-turbo').
-- `--max-tokens`: The maximum number of tokens to use for the changelog prompt.
+- `--max-tokens`: The maximum number of tokens to use for the changelog prompt (overrides the configured value).
 - `--commit-range`: The range of commits to consider for generating the changelog.
 
 ### Asking a Custom Question
