@@ -63,20 +63,36 @@ git-gpt config --api-key <API_KEY> --api-type <API_TYPE>
 - `--max-tokens-issue`: Maximum number of tokens for issue module responses.
 - `--max-tokens-changelog`: Maximum number of tokens for changelog module responses.
 - `--api-type`: The type of API to use ('openai' or 'ollama').
-- `--ollama-base`: The base URL for Ollama API (e.g., 'http://localhost:11434').
+- `--ollama-base`: The base URL for Ollama API (default is 'http://localhost:11434').
 
 ## Ollama Support
 
-Git-GPT now supports Ollama, an open-source, locally hosted language model. To use Ollama:
+Git-GPT now supports Ollama, an open-source, locally hosted language model. This allows you to use Git-GPT without relying on external API services.
+
+### Setting up Ollama:
 
 1. Install and set up Ollama on your local machine (visit [Ollama's website](https://ollama.ai/) for instructions).
-2. Configure Git-GPT to use Ollama:
+2. Pull the desired model(s) using Ollama's CLI (e.g., `ollama pull gemma2`).
+
+### Configuring Git-GPT for Ollama:
+
+To use Ollama with Git-GPT, configure it as follows:
 
 ```bash
-git-gpt config --api-type ollama --ollama-base http://localhost:11434 --model llama2
+git-gpt config --api-type ollama --ollama-base http://localhost:11434 --model <MODEL_NAME>
 ```
 
-Replace `llama2` with any other model you have pulled in Ollama.
+Replace `<MODEL_NAME>` with the model you've pulled in Ollama (e.g., llama2, codellama, mistral, etc.).
+
+### Default Model:
+
+The default model for Ollama in Git-GPT is set to 'gpt-4o-mini'. You can change this by specifying a different model during configuration or when running commands.
+
+### Using Ollama:
+
+Once configured, you can use Git-GPT with Ollama just like you would with OpenAI. All commands (commit, issue, quality, changelog, ask) will automatically use your Ollama configuration.
+
+Note: When using Ollama, you don't need to provide an API key.
 
 ## Usage
 
