@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "git_gpt"
-dynamic = ["version"]
+version = "0.8.1"
 authors = [
     {name = "ShinChven", email = "shinchven@gmail.com"},
 ]
@@ -21,6 +21,7 @@ dependencies = [
     "click",
     "openai",
     "gitpython",
+    "tomli",
 ]
 
 [project.urls]
@@ -32,9 +33,6 @@ git-gpt = "git_gpt.main:cli"
 
 [tool.setuptools]
 packages = ["git_gpt"]
-
-[tool.setuptools.dynamic]
-version = {attr = "git_gpt.__version__"}
 
 [tool.setuptools.package-data]
 git_gpt = ["*"]

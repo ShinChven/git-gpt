@@ -1,5 +1,3 @@
-__version__ = '0.8.0'
-
 from .config_command import config
 from .commit_command import commit
 from .issue_command import issue
