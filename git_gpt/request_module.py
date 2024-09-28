@@ -32,7 +32,6 @@ class RequestModule:
                 temperature=temperature
             )
             response = json.loads(response.model_dump_json())
-            print(f"OpenAI API Response: {response}")  # Debug print
             return response
         except Exception as e:
             print(f"Error in OpenAI API request: {e}")
@@ -48,7 +47,6 @@ class RequestModule:
             response = requests.post(f"{self.api_base}/api/chat", json=data)
             response.raise_for_status()
             content = response.content.decode('utf-8')
-            print(f"Ollama API Response: {content}")  # Debug print
             return self._process_ollama_response(content)
         except requests.exceptions.RequestException as e:
             print(f"Error in Ollama API request: {e}")
@@ -62,8 +60,8 @@ class RequestModule:
         for line in lines:
             try:
                 json_obj = json.loads(line)
-                if 'response' in json_obj:
-                    full_response += json_obj['response']
+                if 'message' in json_obj and 'content' in json_obj['message']:
+                    full_response += json_obj['message']['content']
                 if json_obj.get('done', False):
                     break
             except json.JSONDecodeError:
