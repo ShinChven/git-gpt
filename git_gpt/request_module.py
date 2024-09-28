@@ -1,7 +1,7 @@
-import os
-import requests
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import json
+import requests
+from openai import OpenAI
 
 class RequestModule:
     def __init__(self, config: Dict[str, Any]):
@@ -10,6 +10,7 @@ class RequestModule:
         
         if self.api_type == 'openai':
             self.api_base = config.get('base', 'https://api.openai.com/v1')
+            self.client = OpenAI(api_key=self.api_key, base_url=self.api_base)
         elif self.api_type == 'ollama':
             self.api_base = config.get('ollama_base', 'http://localhost:11434')
         else:
@@ -24,29 +25,17 @@ class RequestModule:
             raise ValueError(f"Unsupported API type: {self.api_type}")
 
     def _send_openai_request(self, messages: list, model: str, temperature: float) -> Dict[str, Any]:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-        }
-        data = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature
-        }
         try:
-            response = requests.post(f"{self.api_base}/chat/completions", headers=headers, json=data)
-            response.raise_for_status()
-            content = response.content.decode('utf-8')
-            print(f"OpenAI API Response: {content}")  # Debug print
-            return json.loads(content)
-        except requests.exceptions.RequestException as e:
+            response = self.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature
+            )
+            response = json.loads(response.model_dump_json())
+            print(f"OpenAI API Response: {response}")  # Debug print
+            return response
+        except Exception as e:
             print(f"Error in OpenAI API request: {e}")
-            if response is not None:
-                print(f"Response content: {response.content}")
-            raise
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON from OpenAI API: {e}")
-            print(f"Response content: {content}")
             raise
 
     def _send_ollama_request(self, messages: list, model: str, temperature: float) -> Dict[str, Any]:
