@@ -1,8 +1,8 @@
 import click
 import git
-from .request_module import RequestModule
 from .config_command import get_config
 import os
+from .ai_client import AIClient
 
 ask_prompt = """
 ```diff
@@ -17,13 +17,17 @@ ask_prompt = """
 @click.option('--question', '-q', help='The question to ask.', required=True)
 def ask(model, commit_range, question):
     config = get_config()
-    model = model or config.get('model', 'gpt-4o-mini')
+    model = model or config.get('default_model')
+
+    if not model:
+        raise ValueError("No default model specified in configuration. Please run git-gpt set-default to set default model or run git-gpt config to add model configuration.")
 
     repo = git.Repo(os.getcwd())
     diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
+    ai_client = AIClient(config)
+
     try:
-        request_module = RequestModule(config)
         click.echo(f"Generating answer using {model}...")
 
         prompt = ask_prompt.replace('[insert_diff]', diff).replace('[insert_question]', question)
@@ -33,12 +37,12 @@ def ask(model, commit_range, question):
             {"role": "user", "content": prompt}
         ]
 
-        response = request_module.send_request(messages=messages, model=model, temperature=0.7)
-        ask_result = request_module.get_response_content(response)
+        response = ai_client.request(messages=messages, model_alias=model)
+        ask_result = response
         click.echo(f"Answer generated successfully:\n\n{ask_result}")
     except ValueError as e:
         click.echo(f"Error: {str(e)}")
         click.echo("Please make sure you have set the API key using `git-gpt config --api-key <API_KEY>`")
     except Exception as e:
         click.echo(f"Error generating answer: {str(e)}")
-        click.echo("Please check the request_module.py file for more details on the error.")
+        click.echo("Please check the ai_client.py file for more details on the error.")

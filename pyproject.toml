@@ -23,6 +23,10 @@ dependencies = [
     "gitpython",
     "tomli",
     "requests",
+    "prompt_toolkit>=3.0.0",
+    "click>=8.0.0",
+    "anthropic",
+    "google-generativeai",
 ]
 
 [project.urls]

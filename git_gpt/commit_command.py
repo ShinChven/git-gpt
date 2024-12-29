@@ -2,8 +2,8 @@ import subprocess
 import tempfile
 import click
 import git
-from .request_module import RequestModule
 from .config_command import get_config
+from .ai_client import AIClient
 import os
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
@@ -55,16 +55,19 @@ def commit(lang, model, run_dry):
 
     # If arguments are not provided via command line, try to get them from the config file
     lang = lang or config.get('lang', 'English')
-    model = model or config.get('model', 'gpt-3.5-turbo')
+    model = model or config.get('default_model')
+
+    if not model:
+        raise ValueError("No default model specified in configuration. Please run git-gpt set-default to set default model or run git-gpt config to add model configuration.")
 
     repo = git.Repo(os.getcwd())
     # add all changes to staged
     repo.git.add('--all')
     diff = repo.git.diff('--staged')  # Get textual representation of staged diffs
 
-    try:
-        request_module = RequestModule(config)
+    ai_client = AIClient(config)
 
+    try:
         click.echo(f"Generating commit message with {model} in {lang}...")
 
         prompt = commit_message_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
@@ -74,8 +77,8 @@ def commit(lang, model, run_dry):
             {"role": "user", "content": prompt}
         ]
 
-        response = request_module.send_request(messages=messages, model=model, temperature=0.7)
-        commit_message = request_module.get_response_content(response)
+        response = ai_client.request(messages=messages, model_alias=model)
+        commit_message = response
 
         if run_dry:
             click.echo(f"Commit message generated successfully:\n\n{commit_message}")
@@ -102,4 +105,4 @@ def commit(lang, model, run_dry):
         click.echo("Please make sure you have set the API key using `git-gpt config --api-key <API_KEY>`")
     except Exception as e:
         click.echo(f"Error generating commit message: {str(e)}")
-        click.echo("Please check the request_module.py file for more details on the error.")
+        click.echo("Please check the ai_client.py file for more details on the error.")

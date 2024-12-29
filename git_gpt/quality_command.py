@@ -1,8 +1,8 @@
 import click
 import git
-from .request_module import RequestModule
 from .config_command import get_config
 import os
+from .ai_client import AIClient
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
@@ -31,16 +31,19 @@ def quality(lang, model, max_tokens, commit_range):
     config = get_config()
 
     lang = lang or config.get('lang', 'English')
-    model = model or config.get('model', 'gpt-4o-mini')
+    model = model or config.get('default_model')
+
+    if not model:
+        raise ValueError("No default model specified in configuration. Please run git-gpt set-default to set default model or run git-gpt config to add model configuration.")
 
     repo = git.Repo(os.getcwd())
     diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
     max_tokens = max_tokens or config.get('quality_check_max_tokens', 2000)
 
-    try:
-        request_module = RequestModule(config)
+    ai_client = AIClient(config)
 
+    try:
         click.echo(f"Performing quality check using {model} in {lang}...")
 
         prompt = quality_prompt.replace('[insert_diff]', diff).replace('[insert_language]', lang)
@@ -50,12 +53,12 @@ def quality(lang, model, max_tokens, commit_range):
             {"role": "user", "content": prompt}
         ]
 
-        response = request_module.send_request(messages=messages, model=model, temperature=0.7)
-        quality_check_result = request_module.get_response_content(response)
+        response = ai_client.request(messages=messages, model_alias=model, max_tokens=max_tokens)
+        quality_check_result = response
         click.echo(f"Quality check performed successfully:\n\n{quality_check_result}")
     except ValueError as e:
         click.echo(f"Error: {str(e)}")
         click.echo("Please make sure you have set the API key using `git-gpt config --api-key <API_KEY>`")
     except Exception as e:
         click.echo(f"Error performing quality check: {str(e)}")
-        click.echo("Please check the request_module.py file for more details on the error.")
+        click.echo("Please check the ai_client.py file for more details on the error.")
