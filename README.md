@@ -1,8 +1,6 @@
 # Git-GPT
 
-A CLI tool to auto-generate git commit messages and issues using OpenAI's GPT model or Ollama.
-
-Use ollama might be a more secure way to generate commit messages and issues. Your data will not be sent to any third-party server.
+Git-GPT is a versatile CLI tool designed to auto-generate git commit messages, issues, and perform various code quality checks using multiple AI providers. It supports OpenAI, Azure OpenAI, Ollama, Claude, and Google Generative AI, giving you the flexibility to choose the best model for your needs.
 
 ![generate-commit-message](/assets/generate-commit-message.webp)
 
@@ -44,28 +42,69 @@ The project is organized as follows:
 - `git_gpt/quality_command.py`: Performs quality checks on code changes.
 - `git_gpt/changelog_command.py`: Generates changelogs based on commits.
 - `git_gpt/ask_command.py`: Allows asking custom questions about code diffs.
-- `git_gpt/request_module.py`: Handles API requests to OpenAI or Ollama.
+- `git_gpt/ai_client.py`: Handles API requests to multiple AI providers.
 
 Each command is implemented in its own file for better organization and maintainability.
 
 ## Configuration
 
-Before using `git-gpt`, you'll need to configure it with your API settings. Run the following command and follow the prompts:
+Before using `git-gpt`, you'll need to configure it with your API settings. For a step-by-step guided configuration, use the following command:
 
 ```bash
-git-gpt config --api-key <API_KEY> --api-type <API_TYPE>
+git-gpt config
 ```
 
-### Options:
-- `--api-key`: The API key to use with OpenAI (not required for Ollama).
-- `--base`: The alternative OpenAI host.
-- `--model`: The model to use for generating messages.
-- `--lang`: Target language for the generated message (default is 'en').
-- `--max-tokens-quality`: Maximum number of tokens for quality module responses.
-- `--max-tokens-issue`: Maximum number of tokens for issue module responses.
-- `--max-tokens-changelog`: Maximum number of tokens for changelog module responses.
-- `--api-type`: The type of API to use ('openai' or 'ollama').
-- `--ollama-base`: The base URL for Ollama API (default is 'http://localhost:11434').
+This command will prompt you for each configuration setting, making the process easier and more user-friendly.
+
+To configure a new model or update an existing one using a single command (all options are mandatory):
+
+```bash
+git-gpt config --alias MODEL_ALIAS --model_name MODEL_NAME --provider PROVIDER --key API_KEY --api_base API_BASE
+```
+
+- `--alias`: A unique name for the model configuration
+- `--model_name`: The name of the model (e.g., "gpt-4" for OpenAI, "claude-3-sonnet-20240229" for Claude, "gemini-1.5-pro" for Google Generative AI)
+- `--provider`: The provider of the model (e.g., "openai", "azure-openai", "ollama", "claude", or "google-generativeai")
+- `--key`: The API key (optional, depending on the provider)
+- `--api_base`: The API base URL (optional, defaults to https://api.anthropic.com for Claude)
+
+If you don't provide all options using the single command method, you'll be prompted to enter the missing information.
+
+### Setting the Default Model
+
+To set the default model:
+
+```bash
+git-gpt set-default MODEL_ALIAS
+```
+
+### Deleting a Model Configuration
+
+To delete a model configuration:
+
+```bash
+git-gpt delete-model MODEL_ALIAS
+```
+
+### Showing All Configured Models
+
+To display all configured models with their provider and masked API key:
+
+```bash
+git-gpt show-models
+```
+
+## Supported AI Providers
+
+Git-GPT supports multiple AI providers, allowing you to choose the one that best fits your needs. The supported providers are:
+
+1. **OpenAI**: Use models like GPT-3 and GPT-4.
+2. **Azure OpenAI**: Access OpenAI models through Microsoft's Azure platform.
+3. **Ollama**: An open-source, locally hosted language model.
+4. **Claude (Anthropic)**: Use models like Claude-3.
+5. **Google Generative AI**: Access models like Gemini.
+
+Each provider may have specific requirements for model names and API configurations. When configuring a new model, make sure to use the correct provider name and follow any provider-specific instructions.
 
 ## Ollama Support
 
