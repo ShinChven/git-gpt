@@ -140,12 +140,11 @@ class AIClient:
         # Convert messages to a single prompt string
         prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
 
-        # generation_config = {}
-        # if max_tokens:
-        #     generation_config['max_output_tokens'] = max_tokens
-
         response = client.models.generate_content(
-  			model='gemini-2.0-flash',
-    		contents=prompt
-		)
+  			model=model,
+    		contents=prompt,
+      		config={
+				'max_output_tokens': max_tokens or None,
+			}
+        )
         return response.text
