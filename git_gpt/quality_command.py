@@ -21,8 +21,9 @@ quality_prompt = """I have a `git diff` output from my recent code changes, and 
 5. Performance Implications: Evaluate if there are any changes that might adversely affect the performance of the code.
 6. Security Check: Examine the code for potential security vulnerabilities, such as SQL injection, cross-site scripting, data leaks, or any other security risks.
 7. Test Coverage: Assess if the changes are covered by existing tests or if new tests need to be added.
-8. use `- [ ]` to define the tasks that need to be done.
-9. Use `##` to define the sections of the report.
+8. Use `- [ ]` to define the tasks that need to be done.
+9. Use `-` to define list, don't use `*` to define list.
+10. Use `#` to define the sections of the report, don't use `** **` to define section title.
 """
 
 @click.command()
