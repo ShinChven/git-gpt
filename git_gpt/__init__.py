@@ -5,6 +5,6 @@ from .quality_command import quality
 from .changelog_command import changelog
 from .ask_command import ask
 
-__version__ = "0.9.1"
+__version__ = "0.13.0"
 
 __all__ = ['config', 'commit', 'issue', 'quality', 'changelog', 'ask', '__version__']

@@ -152,8 +152,6 @@ class AIClient:
         # Combine non-system messages into a single prompt string
         prompt = "\n".join(chat_messages_parts)
 
-        print(f"maxtokens: {max_tokens}")
-
         # Prepare configuration dictionary
         config_dict = {
             'max_output_tokens': max_tokens or None,
