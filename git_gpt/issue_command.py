@@ -77,7 +77,7 @@ def issue(lang, model, max_tokens, commit_range):
     repo = git.Repo(os.getcwd())
     diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
-    max_tokens = max_tokens or config.get('issue_max_tokens', 2000)
+    max_tokens = max_tokens or config.get('issue_max_tokens') or None
 
     ai_client = AIClient(config)
 

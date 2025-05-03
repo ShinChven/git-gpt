@@ -3,6 +3,7 @@ from openai import OpenAI, AzureOpenAI
 import requests
 import anthropic
 from google import genai
+from google.genai import types # Import types
 
 class AIClient:
     def __init__(self, config):
@@ -134,17 +135,46 @@ class AIClient:
         if 'key' not in model_config or not model_config['key']:
             raise ValueError("API key not provided for Google Generative AI")
 
+        # Keep the original client instantiation
         client = genai.Client(api_key=model_config['key'])
-        model = model_config['model_name']
+        model_name = model_config['model_name']
 
-        # Convert messages to a single prompt string
-        prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+        system_instruction = None
+        chat_messages_parts = []
+        for msg in messages:
+            if msg['role'] == 'system':
+                # Extract system instruction
+                system_instruction = msg['content']
+            else:
+                # Format other messages for the prompt string
+                chat_messages_parts.append(f"{msg['role']}: {msg['content']}")
 
+        # Combine non-system messages into a single prompt string
+        prompt = "\n".join(chat_messages_parts)
+
+        print(f"maxtokens: {max_tokens}")
+
+        # Prepare configuration dictionary
+        config_dict = {
+            'max_output_tokens': max_tokens or None,
+            'system_instruction': system_instruction or None,
+            # Add other config parameters from model_config if needed, e.g.:
+            # 'top_k': model_config.get('top_k'),
+            # 'top_p': model_config.get('top_p'),
+            # 'temperature': model_config.get('temperature'),
+        }
+
+        # Remove None values from config_dict as GenerateContentConfig might not accept them
+        config_dict = {k: v for k, v in config_dict.items() if v is not None}
+
+        # Create GenerateContentConfig object
+        generation_config = types.GenerateContentConfig(**config_dict)
+
+        # Use the generate_content call with the config object
         response = client.models.generate_content(
-  			model=model,
-    		contents=prompt,
-      		config={
-				'max_output_tokens': max_tokens or None,
-			}
+            model=model_name,
+            contents=prompt,
+            config=generation_config # Pass the config object here
         )
+        # Keep the original return statement
         return response.text

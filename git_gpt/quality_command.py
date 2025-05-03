@@ -6,7 +6,7 @@ from .ai_client import AIClient
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
-quality_prompt = """I have a `git diff` output from my recent code changes, and I need help with a quality check report written in [insert_language]. 
+quality_prompt = """I have a `git diff` output from my recent code changes, and I need help with a quality check report written in [insert_language].
 
 ## Changes
 ```diff
@@ -39,7 +39,7 @@ def quality(lang, model, max_tokens, commit_range):
     repo = git.Repo(os.getcwd())
     diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
 
-    max_tokens = max_tokens or config.get('quality_check_max_tokens', 2000)
+    max_tokens = max_tokens or config.get('quality_check_max_tokens') or None
 
     ai_client = AIClient(config)
 
