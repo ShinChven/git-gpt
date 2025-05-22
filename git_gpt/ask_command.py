@@ -3,7 +3,7 @@ import git
 from .config_command import get_config
 import os
 from .ai_client import AIClient
-from .git_diff import get_git_diff
+from .git_diff import get_git_diff_by_commit_range
 
 ask_prompt = """
 ```diff
@@ -23,7 +23,7 @@ def ask(model, commit_range, question):
     if not model:
         raise ValueError("No default model specified in configuration. Please run git-gpt set-default to set default model or run git-gpt config to add model configuration.")
 
-    diff = get_git_diff(commit_range)
+    diff = get_git_diff_by_commit_range(commit_range)
 
     ai_client = AIClient(config)
 

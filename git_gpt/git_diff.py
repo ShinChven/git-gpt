@@ -2,7 +2,7 @@ import git
 import os
 import click
 
-def get_git_diff(commit_range: int | None = None) -> str:
+def get_git_diff_by_commit_range(commit_range: int | None = None) -> str:
     """
     Retrieves the git diff for the specified commit range.
 
