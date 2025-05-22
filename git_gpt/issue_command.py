@@ -3,6 +3,7 @@ import git
 from .config_command import get_config
 import os
 from .ai_client import AIClient
+from .git_diff import get_git_diff
 
 system_instruction = "You are going to work as a text generator, **you don't talk at all**, you will print your response in plain text without code block."
 
@@ -74,10 +75,7 @@ def issue(lang, model, max_tokens, commit_range):
     if not model:
         raise ValueError("No default model specified in configuration. Please run git-gpt set-default to set default model or run git-gpt config to add model configuration.")
 
-    repo = git.Repo(os.getcwd())
-    diff_command = f'git diff HEAD~{commit_range or 1}..HEAD'
-    click.echo(f"Running git command: {diff_command}")
-    diff = repo.git.diff(f'HEAD~{commit_range or 1}..HEAD')
+    diff = get_git_diff(commit_range)
 
     max_tokens = max_tokens or config.get('issue_max_tokens') or None
 
